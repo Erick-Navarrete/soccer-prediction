@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Predictions - AI Powered</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-futbol"></i>
+                    <h1>Soccer Predictions</h1>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Accuracy</span>
+                        <span class="stat-value" id="accuracy">--%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Predictions</span>
+                        <span class="stat-value" id="total-predictions">--</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button class="tab active" data-tab="predictions">
+                <i class="fas fa-chart-line"></i>
+                Predictions
+            </button>
+            <button class="tab" data-tab="teams">
+                <i class="fas fa-trophy"></i>
+                Top Teams
+            </button>
+            <button class="tab" data-tab="performance">
+                <i class="fas fa-chart-bar"></i>
+                Performance
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Predictions Tab -->
+            <div class="tab-content active" id="predictions-tab">
+                <div class="section-header">
+                    <h2>Upcoming Matches</h2>
+                    <button class="btn-refresh" onclick="refreshPredictions()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <div class="predictions-list" id="predictions-list">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading predictions...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teams Tab -->
+            <div class="tab-content" id="teams-tab">
+                <div class="section-header">
+                    <h2>Top Teams by ELO Rating</h2>
+                </div>
+
+                <div class="teams-list" id="teams-list">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading teams...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div class="tab-content" id="performance-tab">
+                <div class="section-header">
+                    <h2>Model Performance</h2>
+                </div>
+
+                <div class="performance-grid">
+                    <div class="performance-card">
+                        <div class="card-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Accuracy</h3>
+                            <p class="card-value" id="perf-accuracy">--%</p>
+                            <p class="card-label">Overall prediction accuracy</p>
+                        </div>
+                    </div>
+
+                    <div class="performance-card">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Log Loss</h3>
+                            <p class="card-value" id="perf-logloss">--</p>
+                            <p class="card-label">Probability calibration</p>
+                        </div>
+                    </div>
+
+                    <div class="performance-card">
+                        <div class="card-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Total Predictions</h3>
+                            <p class="card-value" id="perf-total">--</p>
+                            <p class="card-label">Matches analyzed</p>
+                        </div>
+                    </div>
+
+                    <div class="performance-card">
+                        <div class="card-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Last Updated</h3>
+                            <p class="card-value" id="perf-updated">--</p>
+                            <p class="card-label">Model training date</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by AI & Machine Learning</p>
+            <p class="last-updated">Last updated: <span id="last-updated">--</span></p>
+        </footer>
+    </div>
+
+    <!-- Match Detail Modal -->
+    <div class="modal" id="match-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Match Details</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Match details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
