@@ -456,6 +456,125 @@ def api_historical_stats():
     })
 
 
+@app.route('/api/status')
+def api_status():
+    """Get system status and last updated timestamp."""
+    try:
+        # Try to read last updated timestamp
+        timestamp_path = Path(__file__).parent.parent / "outputs" / "last_updated.txt"
+
+        if timestamp_path.exists():
+            with open(timestamp_path, 'r') as f:
+                last_updated = f.read().strip()
+        else:
+            last_updated = "Never"
+
+        # Check if model is loaded
+        model_loaded = model is not None and scaler is not None
+
+        # Get data freshness
+        if latest_data is not None and not latest_data.empty:
+            latest_date = latest_data["Date"].max()
+            data_freshness = (pd.Timestamp.now() - latest_date).days
+        else:
+            data_freshness = None
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "model_loaded": model_loaded,
+                "last_updated": last_updated,
+                "data_freshness_days": data_freshness,
+                "total_matches": len(latest_data) if latest_data is not None else 0,
+                "update_frequency": "Every 6 hours (scheduled)",
+                "next_update": "Automatic"
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route('/api/update', methods=['POST'])
+def api_update():
+    """Trigger manual update of predictions."""
+    try:
+        # Import update function
+        import sys
+        sys.path.append(str(Path(__file__).parent.parent))
+        from src.update_predictions import update_predictions
+
+        # Run update
+        success = update_predictions(seasons=["2425"], leagues=["E0"])
+
+        if success:
+            # Reload predictions
+            load_model_and_data()
+
+            return jsonify({
+                "success": True,
+                "message": "Predictions updated successfully",
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "message": "Failed to update predictions"
+            }), 500
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route('/api/live-matches')
+def api_live_matches():
+    """Get live match data (if API key is configured)."""
+    try:
+        # Check if API key is configured
+        api_key = os.getenv("API_FOOTBALL_KEY")
+
+        if not api_key:
+            return jsonify({
+                "success": False,
+                "message": "API_FOOTBALL_KEY not configured",
+                "data": []
+            })
+
+        # Import live data fetcher
+        import sys
+        sys.path.append(str(Path(__file__).parent.parent))
+        from src.live_data_fetcher import LiveFootballData
+
+        # Fetch live matches
+        live_data = LiveFootballData(api_key)
+        live_matches = live_data.get_live_matches()
+
+        # Format matches
+        formatted_matches = []
+        for match in live_matches:
+            formatted = live_data.format_live_match(match)
+            formatted_matches.append(formatted)
+
+        return jsonify({
+            "success": True,
+            "data": formatted_matches,
+            "count": len(formatted_matches)
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "data": []
+        }), 500
+
+
 if __name__ == '__main__':
     # Load model and data on startup
     print("Loading model and data...")

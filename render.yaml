@@ -11,3 +11,12 @@ services:
       - key: FLASK_ENV
         value: production
     healthCheckPath: /
+
+# Cron job for scheduled updates (every 6 hours)
+crons:
+  - name: update-predictions
+    schedule: "0 */6 * * *"
+    command: python src/update_predictions.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
