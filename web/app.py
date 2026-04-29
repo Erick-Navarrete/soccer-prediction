@@ -15,13 +15,14 @@ import sys
 
 # Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from data_loader import FootballDataLoader, DataCleaner
-from feature_engineering import (
+from src.data_loader import FootballDataLoader, DataCleaner
+from src.feature_engineering import (
     FeatureEngineer, FootballELO, compute_xg_proxy,
     compute_fatigue_features, compute_h2h_features, add_odds_features
 )
-from ml_models import prepare_model_data, build_ensemble
+from src.ml_models import prepare_model_data, build_ensemble
 import pickle
 
 app = Flask(__name__)
@@ -32,6 +33,7 @@ scaler = None
 feature_names = None
 latest_data = None
 elo_system = None
+historical_predictions = []
 
 
 def load_model_and_data():
@@ -71,6 +73,141 @@ def load_model_and_data():
 
     except Exception as e:
         print(f"Error loading model and data: {e}")
+        return False
+
+
+def load_historical_predictions():
+    """Load historical predictions from file."""
+    global historical_predictions
+
+    try:
+        history_path = Path(__file__).parent.parent / "outputs" / "historical_predictions.json"
+
+        if history_path.exists():
+            with open(history_path, 'r') as f:
+                historical_predictions = json.load(f)
+            print(f"Loaded {len(historical_predictions)} historical predictions")
+            return True
+        else:
+            print("No historical predictions found")
+            historical_predictions = []
+            return False
+
+    except Exception as e:
+        print(f"Error loading historical predictions: {e}")
+        historical_predictions = []
+        return False
+
+
+def save_historical_predictions():
+    """Save historical predictions to file."""
+    try:
+        history_path = Path(__file__).parent.parent / "outputs"
+        history_path.mkdir(exist_ok=True)
+
+        with open(history_path / "historical_predictions.json", 'w') as f:
+            json.dump(historical_predictions, f, indent=2)
+
+        print(f"Saved {len(historical_predictions)} historical predictions")
+        return True
+
+    except Exception as e:
+        print(f"Error saving historical predictions: {e}")
+        return False
+
+
+def generate_historical_predictions():
+    """Generate historical predictions with actual outcomes."""
+    if model is None or scaler is None or latest_data is None:
+        return []
+
+    try:
+        # Find past matches (matches that already happened)
+        today = pd.Timestamp.now()
+        past_matches = latest_data[latest_data["Date"] < today].sort_values("Date", ascending=False).head(50)
+
+        if past_matches.empty:
+            return []
+
+        historical = []
+
+        for _, match in past_matches.iterrows():
+            # Get team ELO ratings
+            home_elo = elo_system.get_rating(match["HomeTeam"])
+            away_elo = elo_system.get_rating(match["AwayTeam"])
+
+            # Calculate win probability based on ELO difference
+            elo_diff = home_elo - away_elo
+            home_prob = 1 / (1 + 10 ** (-elo_diff / 400))
+            away_prob = 1 - home_prob
+            draw_prob = 0.25
+
+            # Normalize
+            total = home_prob + draw_prob + away_prob
+            home_prob /= total
+            draw_prob /= total
+            away_prob /= total
+
+            # Determine prediction
+            probs = [away_prob, draw_prob, home_prob]
+            prediction_idx = np.argmax(probs)
+            prediction_map = {0: "Away Win", 1: "Draw", 2: "Home Win"}
+            confidence = max(probs)
+
+            # Get actual result
+            result_map = {"H": "Home Win", "D": "Draw", "A": "Away Win"}
+            actual_result = result_map.get(match.get("FTR", ""), "Unknown")
+
+            # Check if prediction was correct
+            is_correct = (prediction_map[prediction_idx] == actual_result)
+
+            historical_pred = {
+                "id": len(historical) + 1,
+                "date": match["Date"].strftime("%Y-%m-%d"),
+                "home_team": match["HomeTeam"],
+                "away_team": match["AwayTeam"],
+                "league": match.get("League", "Unknown"),
+                "prediction": prediction_map[prediction_idx],
+                "actual": actual_result,
+                "is_correct": is_correct,
+                "confidence": round(confidence * 100, 1),
+                "home_prob": round(home_prob * 100, 1),
+                "draw_prob": round(draw_prob * 100, 1),
+                "away_prob": round(away_prob * 100, 1),
+                "home_elo": round(home_elo),
+                "away_elo": round(away_elo),
+                "elo_diff": round(elo_diff),
+                "home_goals": int(match.get("FTHG", 0)),
+                "away_goals": int(match.get("FTAG", 0))
+            }
+
+            historical.append(historical_pred)
+
+        return historical
+
+    except Exception as e:
+        print(f"Error generating historical predictions: {e}")
+        return []
+
+
+def update_historical_predictions():
+    """Update historical predictions with latest data."""
+    global historical_predictions
+
+    try:
+        # Generate new historical predictions
+        new_historical = generate_historical_predictions()
+
+        if new_historical:
+            # Save to file
+            historical_predictions = new_historical
+            save_historical_predictions()
+
+            return True
+        return False
+
+    except Exception as e:
+        print(f"Error updating historical predictions: {e}")
         return False
 
 
@@ -257,6 +394,68 @@ def api_match_detail(match_id):
     }), 404
 
 
+@app.route('/api/historical')
+def api_historical():
+    """Get historical predictions API endpoint."""
+    return jsonify({
+        "success": True,
+        "data": historical_predictions,
+        "count": len(historical_predictions),
+        "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
+
+
+@app.route('/api/historical/update')
+def api_historical_update():
+    """Update historical predictions API endpoint."""
+    success = update_historical_predictions()
+
+    return jsonify({
+        "success": success,
+        "message": "Historical predictions updated" if success else "Failed to update",
+        "count": len(historical_predictions),
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
+
+
+@app.route('/api/historical/stats')
+def api_historical_stats():
+    """Get historical prediction statistics."""
+    if not historical_predictions:
+        return jsonify({
+            "success": True,
+            "data": {
+                "total": 0,
+                "correct": 0,
+                "accuracy": 0,
+                "home_wins": 0,
+                "away_wins": 0,
+                "draws": 0
+            }
+        })
+
+    total = len(historical_predictions)
+    correct = sum(1 for pred in historical_predictions if pred.get("is_correct", False))
+    accuracy = (correct / total * 100) if total > 0 else 0
+
+    # Count result types
+    home_wins = sum(1 for pred in historical_predictions if pred.get("actual") == "Home Win")
+    away_wins = sum(1 for pred in historical_predictions if pred.get("actual") == "Away Win")
+    draws = sum(1 for pred in historical_predictions if pred.get("actual") == "Draw")
+
+    return jsonify({
+        "success": True,
+        "data": {
+            "total": total,
+            "correct": correct,
+            "accuracy": round(accuracy, 1),
+            "home_wins": home_wins,
+            "away_wins": away_wins,
+            "draws": draws
+        }
+    })
+
+
 if __name__ == '__main__':
     # Load model and data on startup
     print("Loading model and data...")
@@ -264,6 +463,15 @@ if __name__ == '__main__':
         print("Model and data loaded successfully!")
     else:
         print("Warning: Could not load model and data. Some features may not work.")
+
+    # Load historical predictions
+    print("Loading historical predictions...")
+    load_historical_predictions()
+
+    # Update historical predictions if needed
+    if not historical_predictions:
+        print("Generating historical predictions...")
+        update_historical_predictions()
 
     # Run Flask app
     app.run(debug=True, host='0.0.0.0', port=5000)

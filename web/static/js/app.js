@@ -6,6 +6,7 @@ let currentTab = 'predictions';
 let predictions = [];
 let teams = [];
 let performance = {};
+let historical = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -50,6 +51,8 @@ async function loadAllData() {
     try {
         await Promise.all([
             loadPredictions(),
+            loadHistorical(),
+            loadHistoricalStats(),
             loadTeams(),
             loadPerformance()
         ]);
@@ -104,6 +107,36 @@ async function loadPerformance() {
         }
     } catch (error) {
         console.error('Error loading performance:', error);
+    }
+}
+
+// Load Historical Predictions
+async function loadHistorical() {
+    try {
+        const response = await fetch(`${API_BASE}/historical`);
+        const result = await response.json();
+
+        if (result.success) {
+            historical = result.data;
+            renderHistorical();
+        }
+    } catch (error) {
+        console.error('Error loading historical:', error);
+        showErrorMessage('historical-list', 'Failed to load historical predictions');
+    }
+}
+
+// Load Historical Stats
+async function loadHistoricalStats() {
+    try {
+        const response = await fetch(`${API_BASE}/historical/stats`);
+        const result = await response.json();
+
+        if (result.success) {
+            renderHistoricalStats(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading historical stats:', error);
     }
 }
 
@@ -220,6 +253,89 @@ function updateHeaderStats(count) {
     document.getElementById('total-predictions').textContent = count;
 }
 
+// Render Historical Predictions
+function renderHistorical() {
+    const container = document.getElementById('historical-list');
+
+    if (historical.length === 0) {
+        container.innerHTML = `
+            <div class="loading">
+                <i class="fas fa-history"></i>
+                <p>No historical predictions found</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = historical.map(pred => `
+        <div class="prediction-card ${pred.is_correct ? 'correct' : 'incorrect'}">
+            <div class="prediction-header">
+                <span class="match-date">
+                    <i class="fas fa-calendar"></i> ${pred.date}
+                </span>
+                <span class="result-badge ${pred.is_correct ? 'correct' : 'incorrect'}">
+                    <i class="fas ${pred.is_correct ? 'fa-check' : 'fa-times'}"></i>
+                    ${pred.is_correct ? 'Correct' : 'Incorrect'}
+                </span>
+            </div>
+
+            <div class="match-teams">
+                <div class="team">
+                    <div class="team-name">${pred.home_team}</div>
+                    <div class="team-score">${pred.home_goals}</div>
+                </div>
+                <div class="vs">${pred.home_goals} - ${pred.away_goals}</div>
+                <div class="team">
+                    <div class="team-name">${pred.away_team}</div>
+                    <div class="team-score">${pred.away_goals}</div>
+                </div>
+            </div>
+
+            <div class="prediction-result">
+                <div class="prediction-label">Prediction vs Actual</div>
+                <div class="prediction-comparison">
+                    <div class="comparison-item">
+                        <span class="comparison-label">Predicted:</span>
+                        <span class="comparison-value prediction">${pred.prediction}</span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">Actual:</span>
+                        <span class="comparison-value actual">${pred.actual}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="probabilities">
+                <div class="prob-item">
+                    <div class="prob-label">Home Win</div>
+                    <div class="prob-value prob-home">${pred.home_prob}%</div>
+                </div>
+                <div class="prob-item">
+                    <div class="prob-label">Draw</div>
+                    <div class="prob-value prob-draw">${pred.draw_prob}%</div>
+                </div>
+                <div class="prob-item">
+                    <div class="prob-label">Away Win</div>
+                    <div class="prob-value prob-away">${pred.away_prob}%</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render Historical Stats
+function renderHistoricalStats(stats) {
+    if (stats.accuracy !== undefined) {
+        document.getElementById('hist-accuracy').textContent = `${stats.accuracy}%`;
+    }
+    if (stats.total !== undefined) {
+        document.getElementById('hist-total').textContent = stats.total;
+    }
+    if (stats.correct !== undefined) {
+        document.getElementById('hist-correct').textContent = stats.correct;
+    }
+}
+
 // Update Last Updated
 function updateLastUpdated() {
     const now = new Date();
@@ -333,6 +449,41 @@ async function refreshPredictions() {
         btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
         setTimeout(() => {
             btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+            btn.disabled = false;
+        }, 2000);
+    }
+}
+
+// Update Historical Predictions
+async function updateHistorical() {
+    const btn = document.querySelector('#historical-tab .btn-refresh');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${API_BASE}/historical/update`);
+        const result = await response.json();
+
+        if (result.success) {
+            await loadHistorical();
+            await loadHistoricalStats();
+            btn.innerHTML = '<i class="fas fa-check"></i> Updated!';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+                btn.disabled = false;
+            }, 2000);
+        } else {
+            btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
+                btn.disabled = false;
+            }, 2000);
+        }
+    } catch (error) {
+        console.error('Error updating historical:', error);
+        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
             btn.disabled = false;
         }, 2000);
     }

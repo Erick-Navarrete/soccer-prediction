@@ -35,6 +35,10 @@
                 <i class="fas fa-chart-line"></i>
                 Predictions
             </button>
+            <button class="tab" data-tab="historical">
+                <i class="fas fa-history"></i>
+                Historical
+            </button>
             <button class="tab" data-tab="teams">
                 <i class="fas fa-trophy"></i>
                 Top Teams
@@ -128,6 +132,54 @@
                             <p class="card-value" id="perf-updated">--</p>
                             <p class="card-label">Model training date</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historical Tab -->
+            <div class="tab-content" id="historical-tab">
+                <div class="section-header">
+                    <h2>Past Predictions & Results</h2>
+                    <button class="btn-refresh" onclick="updateHistorical()">
+                        <i class="fas fa-sync-alt"></i>
+                        Update
+                    </button>
+                </div>
+
+                <div class="historical-stats" id="historical-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Accuracy</h3>
+                            <p class="stat-value" id="hist-accuracy">--%</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Predictions</h3>
+                            <p class="stat-value" id="hist-total">--</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Correct</h3>
+                            <p class="stat-value" id="hist-correct">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="historical-list" id="historical-list">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading historical predictions...</p>
                     </div>
                 </div>
             </div>

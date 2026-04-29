@@ -557,3 +557,105 @@ body {
         font-size: 1.2rem;
     }
 }
+
+/* Historical Predictions Styles */
+.historical-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.stat-icon {
+    font-size: 2rem;
+    color: #667eea;
+}
+
+.stat-info h3 {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.result-badge {
+    background: #667eea;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.result-badge.correct {
+    background: #28a745;
+}
+
+.result-badge.incorrect {
+    background: #dc3545;
+}
+
+.prediction-card.correct {
+    border-left-color: #28a745;
+}
+
+.prediction-card.incorrect {
+    border-left-color: #dc3545;
+}
+
+.team-score {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.prediction-comparison {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.comparison-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+}
+
+.comparison-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.comparison-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.comparison-value.prediction {
+    color: #667eea;
+}
+
+.comparison-value.actual {
+    color: #28a745;
+}

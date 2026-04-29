@@ -186,8 +186,8 @@ def build_ensemble(
     print(f"  ENSEMBLE (Soft Voting)")
     print(f"  Accuracy:  {accuracy_score(y_test, preds):.4f}")
     print(f"  Log Loss:  {log_loss(y_test, proba):.4f}")
-    print(f"\n{classification_report(y_test, preds, "
-          f"target_names=['Away Win', 'Draw', 'Home Win'])}")
+    report = classification_report(y_test, preds, target_names=['Away Win', 'Draw', 'Home Win'])
+    print(f"\n{report}")
 
     return ensemble, scaler
 
