@@ -18,7 +18,6 @@ from sklearn.ensemble import (
     RandomForestClassifier, GradientBoostingClassifier,
     VotingClassifier,
 )
-from xgboost import XGBClassifier
 from typing import Dict, Tuple, Optional
 
 
@@ -77,17 +76,11 @@ def train_and_evaluate(
 
     models = {
         "Logistic Regression": LogisticRegression(
-            max_iter=1000, multi_class="multinomial", C=0.5,
+            max_iter=1000, C=0.5,
         ),
         "Random Forest": RandomForestClassifier(
             n_estimators=200, max_depth=8,
             min_samples_leaf=10, random_state=42,
-        ),
-        "XGBoost": XGBClassifier(
-            n_estimators=200, max_depth=5,
-            learning_rate=0.05, subsample=0.8,
-            colsample_bytree=0.8, random_state=42,
-            eval_metric="mlogloss",
         ),
         "Gradient Boosting": GradientBoostingClassifier(
             n_estimators=150, max_depth=4,
@@ -157,15 +150,14 @@ def build_ensemble(
     ensemble = VotingClassifier(
         estimators=[
             ("lr", LogisticRegression(
-                max_iter=1000, multi_class="multinomial", C=0.5)),
+                max_iter=1000, C=0.5)),
             ("rf", RandomForestClassifier(
                 n_estimators=200, max_depth=8, random_state=42)),
-            ("xgb", XGBClassifier(
-                n_estimators=200, max_depth=5, learning_rate=0.05,
-                random_state=42, eval_metric="mlogloss")),
+            ("gb", GradientBoostingClassifier(
+                n_estimators=150, max_depth=4, learning_rate=0.08, random_state=42)),
         ],
         voting="soft",  # use probabilities, not votes
-        weights=[1, 1, 2],  # higher weight for XGBoost
+        weights=[1, 1, 1],  # equal weights for all models
     )
 
     # Final training on all data (for production)

@@ -85,8 +85,8 @@ class WalkForwardBacktest:
         print(f"  Total predictions: {len(all_preds)}")
         print(f"  Accuracy: {accuracy:.4f}")
         print(f"  Log Loss: {logloss:.4f}")
-        print(f"\n{classification_report(all_true, all_preds, "
-              f"target_names=['Away', 'Draw', 'Home'])}")
+        report = classification_report(all_true, all_preds, target_names=['Away', 'Draw', 'Home'])
+        print(f"\n{report}")
 
         return {
             "predictions": all_preds,

@@ -90,7 +90,7 @@ class FootballDataLoader:
                 df = self.load_season(league, season)
                 if not df.empty:
                     frames.append(df)
-                    print(f"  ✓ {self.LEAGUES.get(league)}, season {season}: "
+                    print(f"  OK {self.LEAGUES.get(league)}, season {season}: "
                           f"{len(df)} matches")
         result = pd.concat(frames, ignore_index=True)
         print(f"\nTotal loaded: {len(result)} matches")

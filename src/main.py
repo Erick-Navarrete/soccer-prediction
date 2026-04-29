@@ -20,6 +20,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import pickle
 
 # Import all modules
 from data_loader import FootballDataLoader, DataCleaner
@@ -198,6 +199,68 @@ def main():
     logger.info("="*60)
 
     ensemble, scaler = build_ensemble(X, y)
+
+    # Save model and scaler for web interface
+    logger.info("\n" + "="*60)
+    logger.info("Saving model and scaler for web interface")
+    logger.info("="*60)
+
+    model_path = output_dir / "ensemble_model.pkl"
+    scaler_path = output_dir / "scaler.pkl"
+    feature_names_path = output_dir / "feature_names.pkl"
+
+    with open(model_path, 'wb') as f:
+        pickle.dump(ensemble, f)
+    logger.info(f"Model saved to: {model_path}")
+
+    with open(scaler_path, 'wb') as f:
+        pickle.dump(scaler, f)
+    logger.info(f"Scaler saved to: {scaler_path}")
+
+    with open(feature_names_path, 'wb') as f:
+        pickle.dump(feature_names, f)
+    logger.info(f"Feature names saved to: {feature_names_path}")
+
+    # Generate predictions for the latest matches
+    logger.info("\n" + "="*60)
+    logger.info("Generating predictions for web interface")
+    logger.info("="*60)
+
+    # Get the most recent matches (last 10)
+    recent_matches = featured_data.tail(10).copy()
+    recent_X = X.tail(10)
+    recent_X_scaled = scaler.transform(recent_X)
+
+    # Generate predictions
+    predictions = ensemble.predict(recent_X_scaled)
+    probabilities = ensemble.predict_proba(recent_X_scaled)
+
+    # Create predictions dataframe
+    predictions_data = []
+    for i, (idx, match) in enumerate(recent_matches.iterrows()):
+        # Convert FTR to numeric (H=2, D=1, A=0)
+        ftr_map = {'H': 2, 'D': 1, 'A': 0}
+        actual_result = ftr_map.get(match.get("FTR", ""), -1) if "FTR" in match else None
+
+        pred_data = {
+            "date": match.get("Date", ""),
+            "home_team": match.get("HomeTeam", ""),
+            "away_team": match.get("AwayTeam", ""),
+            "home_win_prob": float(probabilities[i][2]),
+            "draw_prob": float(probabilities[i][1]),
+            "away_win_prob": float(probabilities[i][0]),
+            "prediction": int(predictions[i]),
+            "actual_result": actual_result,
+            "league": match.get("League", "E0")
+        }
+        predictions_data.append(pred_data)
+
+    # Save predictions
+    predictions_df = pd.DataFrame(predictions_data)
+    predictions_path = output_dir / "predictions.csv"
+    predictions_df.to_csv(predictions_path, index=False)
+    logger.info(f"Predictions saved to: {predictions_path}")
+    logger.info(f"Generated {len(predictions_df)} predictions")
 
     # Step 6: Backtesting
     if not args.skip_backtest:

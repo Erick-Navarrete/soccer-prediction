@@ -107,7 +107,7 @@ class PolymarketClient:
                 print(f"  ⚠ Request error: {e}")
                 break
 
-        print(f"  ✓ Found {len(all_markets)} football markets")
+        print(f"  OK Found {len(all_markets)} football markets")
         return all_markets
 
     def get_event_markets(self, event_slug: str) -> List[Dict]:

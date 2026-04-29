@@ -53,7 +53,11 @@ class FeatureEngineer:
         away_records = df[["Date", "AwayTeam", "FTAG", "FTHG",
                            "AS", "HS", "AST", "HST",
                            "AC", "HC", "AF", "HF"]].copy()
-        away_records.columns = home_records.columns
+        away_records.columns = ["Date", "Team", "GF", "GA",
+                                "Shots", "ShotsAgainst",
+                                "SoT", "SoTAgainst",
+                                "Corners", "CornersAgainst",
+                                "Fouls", "FoulsAgainst"]
         away_records["IsHome"] = 0
 
         all_records = pd.concat([home_records, away_records])
