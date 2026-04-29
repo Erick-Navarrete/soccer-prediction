@@ -68,3 +68,10 @@ Thumbs.db
 
 # Claude
 .claude/
+
+# Deployment (keep scripts, ignore generated files)
+venv/
+.env.local
+*.pid
+*.sock
+.DS_Store
