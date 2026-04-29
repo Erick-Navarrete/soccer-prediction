@@ -537,22 +537,22 @@ def api_live_matches():
     """Get live match data (if API key is configured)."""
     try:
         # Check if API key is configured
-        api_key = os.getenv("API_FOOTBALL_KEY")
+        api_key = os.getenv("FREE_FOOTBALL_API_KEY")
 
         if not api_key:
             return jsonify({
                 "success": False,
-                "message": "API_FOOTBALL_KEY not configured",
+                "message": "FREE_FOOTBALL_API_KEY not configured. Get your free API key from: https://rapidapi.com/Creativesdev/api/free-api-live-football-data",
                 "data": []
             })
 
         # Import live data fetcher
         import sys
         sys.path.append(str(Path(__file__).parent.parent))
-        from src.live_data_fetcher import LiveFootballData
+        from src.free_live_football_api import FreeLiveFootballData
 
         # Fetch live matches
-        live_data = LiveFootballData(api_key)
+        live_data = FreeLiveFootballData(api_key)
         live_matches = live_data.get_live_matches()
 
         # Format matches
@@ -565,6 +565,100 @@ def api_live_matches():
             "success": True,
             "data": formatted_matches,
             "count": len(formatted_matches)
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "data": []
+        }), 500
+
+
+@app.route('/api/fixtures')
+def api_fixtures():
+    """Get upcoming fixtures (if API key is configured)."""
+    try:
+        # Check if API key is configured
+        api_key = os.getenv("FREE_FOOTBALL_API_KEY")
+
+        if not api_key:
+            return jsonify({
+                "success": False,
+                "message": "FREE_FOOTBALL_API_KEY not configured",
+                "data": []
+            })
+
+        # Get date range (next 7 days)
+        from_date = datetime.now().strftime("%Y-%m-%d")
+        to_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+
+        # Import live data fetcher
+        import sys
+        sys.path.append(str(Path(__file__).parent.parent))
+        from src.free_live_football_api import FreeLiveFootballData
+
+        # Fetch fixtures
+        live_data = FreeLiveFootballData(api_key)
+        fixtures = live_data.get_fixtures(from_date=from_date, to_date=to_date)
+
+        # Format fixtures
+        formatted_fixtures = []
+        for fixture in fixtures:
+            formatted = live_data.format_fixture(fixture)
+            formatted_fixtures.append(formatted)
+
+        return jsonify({
+            "success": True,
+            "data": formatted_fixtures,
+            "count": len(formatted_fixtures)
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "data": []
+        }), 500
+
+
+@app.route('/api/results')
+def api_results():
+    """Get recent match results (if API key is configured)."""
+    try:
+        # Check if API key is configured
+        api_key = os.getenv("FREE_FOOTBALL_API_KEY")
+
+        if not api_key:
+            return jsonify({
+                "success": False,
+                "message": "FREE_FOOTBALL_API_KEY not configured",
+                "data": []
+            })
+
+        # Get date range (last 7 days)
+        from_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        to_date = datetime.now().strftime("%Y-%m-%d")
+
+        # Import live data fetcher
+        import sys
+        sys.path.append(str(Path(__file__).parent.parent))
+        from src.free_live_football_api import FreeLiveFootballData
+
+        # Fetch results
+        live_data = FreeLiveFootballData(api_key)
+        results = live_data.get_match_results(from_date=from_date, to_date=to_date)
+
+        # Format results
+        formatted_results = []
+        for result in results:
+            formatted = live_data.format_live_match(result)
+            formatted_results.append(formatted)
+
+        return jsonify({
+            "success": True,
+            "data": formatted_results,
+            "count": len(formatted_results)
         })
 
     except Exception as e:
