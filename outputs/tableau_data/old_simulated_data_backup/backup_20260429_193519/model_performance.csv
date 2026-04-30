@@ -1,0 +1,9 @@
+metric,value,category,timestamp
+Overall Accuracy,0.9,Accuracy,2026-04-29 19:05:30
+Total Predictions,10.0,Volume,2026-04-29 19:05:30
+Home Win Probability Avg,0.27848933508038876,Probability,2026-04-29 19:05:30
+Draw Probability Avg,0.218332601781905,Probability,2026-04-29 19:05:30
+Away Win Probability Avg,0.5031780631377062,Probability,2026-04-29 19:05:30
+High Confidence Predictions,6.0,Confidence,2026-04-29 19:05:30
+Medium Confidence Predictions,2.0,Confidence,2026-04-29 19:05:30
+Low Confidence Predictions,2.0,Confidence,2026-04-29 19:05:30

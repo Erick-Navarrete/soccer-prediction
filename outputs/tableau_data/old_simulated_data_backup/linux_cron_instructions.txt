@@ -1,0 +1,28 @@
+
+Linux Cron Job Setup Instructions:
+
+1. Make the script executable (already done):
+   chmod +x D:\Project_App\soccer-prediction\refresh_tableau_data.sh
+
+2. Open crontab:
+   crontab -e
+
+3. Add the following line:
+   0 6 * * * D:\Project_App\soccer-prediction/refresh_tableau_data.sh >> D:\Project_App\soccer-prediction\outputs\tableau_data/cron.log 2>&1
+
+4. Save and exit
+
+5. Test the script manually:
+   D:\Project_App\soccer-prediction\refresh_tableau_data.sh
+
+6. Monitor logs:
+   tail -f D:\Project_App\soccer-prediction\outputs\tableau_data/cron.log
+
+Alternative: Run once daily at 6 AM
+   0 6 * * * D:\Project_App\soccer-prediction/refresh_tableau_data.sh >> D:\Project_App\soccer-prediction\outputs\tableau_data/cron.log 2>&1
+
+Alternative: Run twice daily at 6 AM and 6 PM
+   0 6,18 * * * D:\Project_App\soccer-prediction\refresh_tableau_data.sh
+
+Alternative: Run every hour
+   0 * * * * D:\Project_App\soccer-prediction\refresh_tableau_data.sh

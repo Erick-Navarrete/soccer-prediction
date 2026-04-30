@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-04-29 19:27:24",
+  "total_predictions": 10,
+  "metrics_created": [
+    "trend_analysis.csv",
+    "confidence_intervals.csv",
+    "team_performance_trends.csv",
+    "predictive_accuracy.csv",
+    "probability_distribution.csv",
+    "head_to_head_analysis.csv"
+  ],
+  "visualization_recommendations": [
+    "Use trend_analysis.csv for time series charts",
+    "Use confidence_intervals.csv for error bar charts",
+    "Use team_performance_trends.csv for team comparison dashboards",
+    "Use predictive_accuracy.csv for accuracy KPIs",
+    "Use probability_distribution.csv for histogram analysis",
+    "Use head_to_head_analysis.csv for matchup matrices"
+  ],
+  "tableau_tips": [
+    "Create calculated fields for rolling averages",
+    "Use parameters for interactive confidence level filtering",
+    "Build story points for narrative analysis",
+    "Use color coding for confidence levels",
+    "Create tooltips with detailed probability breakdowns"
+  ]
+}

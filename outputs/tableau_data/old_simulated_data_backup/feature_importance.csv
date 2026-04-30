@@ -1,0 +1,55 @@
+feature_name,importance_score,feature_category,rank
+elo_expected_away,0.9322855732763727,Team Rating,1
+elo_home,0.9227279699658117,Team Rating,2
+elo_away,0.9217753316328812,Team Rating,3
+elo_diff,0.8977259864752177,Team Rating,4
+elo_expected_home,0.8675038604662864,Team Rating,5
+diff_Form,0.8625960193357827,Team Form,6
+away_xG_overperf,0.8307818148507785,Expected Goals,7
+home_Form,0.8234575388219155,Team Form,8
+home_xG_proxy,0.7934251754084228,Expected Goals,9
+home_xG_overperf,0.7838719666982076,Expected Goals,10
+h2h_home_wins,0.7743594399275736,Head-to-Head,11
+away_Form,0.7740863276525815,Team Form,12
+away_xG_proxy,0.7630414352643923,Expected Goals,13
+away_avg_CornersAgainst,0.7401921094770108,Rolling Average,14
+home_fatigued,0.73179318833757,Fatigue Factor,15
+away_fatigued,0.7245519659727692,Fatigue Factor,16
+norm_prob_A,0.7190226660919299,Betting Odds,17
+away_rest_days,0.7144016251971591,Fatigue Factor,18
+home_avg_FoulsAgainst,0.711375790212053,Rolling Average,19
+away_avg_ShotsAgainst,0.706200360078223,Rolling Average,20
+diff_avg_Corners,0.7053200866219415,Rolling Average,21
+rest_advantage,0.7035994097157445,Fatigue Factor,22
+home_avg_CornersAgainst,0.7026360945063078,Rolling Average,23
+diff_avg_FoulsAgainst,0.6977785989896883,Rolling Average,24
+home_avg_SoTAgainst,0.6949106078434419,Rolling Average,25
+diff_avg_GF,0.6936455130572914,Rolling Average,26
+away_avg_Shots,0.6932594821137039,Rolling Average,27
+away_avg_SoTAgainst,0.6932281690741997,Rolling Average,28
+h2h_total_goals_avg,0.6924746567718485,Head-to-Head,29
+h2h_draws,0.6895940134465772,Head-to-Head,30
+home_avg_GA,0.6821474485876591,Rolling Average,31
+diff_avg_SoT,0.6816645649279947,Rolling Average,32
+diff_avg_CornersAgainst,0.6784986190654262,Rolling Average,33
+home_rest_days,0.6754759719119365,Fatigue Factor,34
+diff_avg_Fouls,0.673203030797571,Rolling Average,35
+odds_spread,0.6662658240059974,Betting Odds,36
+home_avg_Fouls,0.6622054096316629,Rolling Average,37
+diff_avg_ShotsAgainst,0.6592386997869695,Rolling Average,38
+away_avg_GA,0.6579261581780865,Rolling Average,39
+diff_avg_GA,0.6495965359555751,Rolling Average,40
+away_avg_Corners,0.6494669343356004,Rolling Average,41
+home_avg_Corners,0.6410350737567824,Rolling Average,42
+diff_avg_SoTAgainst,0.6345903969660129,Rolling Average,43
+away_avg_FoulsAgainst,0.6333587415229491,Rolling Average,44
+norm_prob_D,0.6191040545989376,Betting Odds,45
+away_avg_SoT,0.6135588529126673,Rolling Average,46
+away_avg_GF,0.5886581479961716,Rolling Average,47
+home_avg_GF,0.5876267941623117,Rolling Average,48
+home_avg_SoT,0.5863578200597482,Rolling Average,49
+diff_avg_Shots,0.5856021279385374,Rolling Average,50
+away_avg_Fouls,0.5854729861822162,Rolling Average,51
+home_avg_ShotsAgainst,0.5641855820073961,Rolling Average,52
+home_avg_Shots,0.5526329861113146,Rolling Average,53
+norm_prob_H,0.371825845493023,Betting Odds,54

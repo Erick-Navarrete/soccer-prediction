@@ -1,0 +1,21 @@
+Team,League,Season,Matches_Played,Wins,Draws,Losses,Points,Goals_For,Goals_Against,Goal_Difference,Home_Wins,Home_Draws,Home_Losses,Home_Goals_For,Home_Goals_Against,Away_Wins,Away_Draws,Away_Losses,Away_Goals_For,Away_Goals_Against,Home_Win_Rate,Away_Win_Rate,Overall_Win_Rate,Recent_Form,Position
+Arsenal,Premier League,2025-2026,34,22,7,5,73,64,26,38,13,2,2,37,11,9,5,3,27,15,0.765,0.529,0.647,HAAHH,1
+Man City,Premier League,2025-2026,33,21,7,5,70,66,29,37,12,3,1,38,12,9,4,4,28,17,0.75,0.529,0.636,HHHDD,2
+Man United,Premier League,2025-2026,34,17,10,7,61,60,46,14,11,3,3,33,20,6,7,4,27,26,0.647,0.353,0.5,HHADH,3
+Liverpool,Premier League,2025-2026,34,17,7,10,58,57,44,13,10,4,3,32,18,7,3,7,25,26,0.588,0.412,0.5,HHHAD,4
+Aston Villa,Premier League,2025-2026,34,17,7,10,58,47,42,5,11,2,4,27,18,6,5,6,20,24,0.647,0.353,0.5,AHDHA,5
+Brighton,Premier League,2025-2026,34,13,11,10,50,48,39,9,8,6,3,27,17,5,5,7,21,22,0.471,0.294,0.382,HDHHH,6
+Bournemouth,Premier League,2025-2026,34,11,16,7,49,52,52,0,6,9,2,25,19,5,7,5,27,33,0.353,0.294,0.324,DHHDD,7
+Chelsea,Premier League,2025-2026,34,13,9,12,48,53,45,8,6,5,6,23,21,7,4,6,30,24,0.353,0.412,0.382,AAAAA,8
+Brentford,Premier League,2025-2026,34,13,9,12,48,49,46,3,7,7,3,28,19,6,2,9,21,27,0.412,0.353,0.382,ADDDD,9
+Fulham,Premier League,2025-2026,34,14,6,14,48,44,46,-2,10,2,5,28,19,4,4,9,16,27,0.588,0.235,0.412,HDAHD,10
+Everton,Premier League,2025-2026,34,13,8,13,47,41,41,0,6,4,7,22,21,7,4,6,19,20,0.353,0.412,0.382,AADHA,11
+Sunderland,Premier League,2025-2026,34,12,10,12,46,36,45,-9,8,5,4,23,19,4,5,8,13,26,0.471,0.235,0.353,AAHHA,12
+Crystal Palace,Premier League,2025-2026,33,11,10,12,43,36,39,-3,4,8,5,16,19,7,2,7,20,20,0.235,0.438,0.333,ADHDH,13
+Newcastle,Premier League,2025-2026,34,12,6,16,42,46,50,-4,8,2,7,30,28,4,4,9,16,22,0.471,0.235,0.353,AAAAH,14
+Leeds,Premier League,2025-2026,34,9,13,12,40,44,51,-7,7,5,5,25,20,2,8,7,19,31,0.412,0.118,0.265,DHHDD,15
+Nott'm Forest,Premier League,2025-2026,34,10,9,15,39,41,45,-4,4,6,7,18,21,6,3,8,23,24,0.235,0.353,0.294,HHDHD,16
+West Ham,Premier League,2025-2026,34,9,9,16,36,42,58,-16,5,4,8,24,29,4,5,8,18,29,0.294,0.235,0.265,HDHAD,17
+Tottenham,Premier League,2025-2026,34,8,10,16,34,43,53,-10,2,5,10,20,30,6,5,6,23,23,0.118,0.353,0.235,HDAAD,18
+Burnley,Premier League,2025-2026,34,4,8,22,20,34,68,-34,2,5,10,15,26,2,3,12,19,42,0.118,0.118,0.118,AAAAD,19
+Wolves,Premier League,2025-2026,34,3,8,23,17,24,62,-38,3,3,11,17,32,0,5,12,7,30,0.176,0.0,0.088,AAADH,20

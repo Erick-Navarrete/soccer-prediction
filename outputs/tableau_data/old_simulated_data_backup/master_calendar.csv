@@ -1,0 +1,2 @@
+date,year,quarter,month,month_name,week,day,day_of_week,day_of_week_num,is_weekend,season
+2025-05-25,2025,2025Q2,5,May,21,25,Sunday,6,True,2024-25

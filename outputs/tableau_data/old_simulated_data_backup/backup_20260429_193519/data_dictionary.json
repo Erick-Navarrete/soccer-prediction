@@ -1,0 +1,106 @@
+{
+  "files": [
+    {
+      "filename": "match_predictions.csv",
+      "description": "Main predictions file with match details and probabilities",
+      "record_count": 10,
+      "last_updated": "2026-04-29 19:05:30",
+      "primary_keys": [
+        "date",
+        "home_team",
+        "away_team"
+      ],
+      "dimensions": [
+        "date",
+        "home_team",
+        "away_team",
+        "league",
+        "prediction_text",
+        "actual_result_text"
+      ],
+      "measures": [
+        "home_win_prob",
+        "draw_prob",
+        "away_win_prob",
+        "home_win_pct",
+        "draw_pct",
+        "away_win_pct"
+      ]
+    },
+    {
+      "filename": "team_rankings.csv",
+      "description": "Team rankings and statistics",
+      "record_count": 20,
+      "last_updated": "2026-04-29 19:05:30",
+      "primary_keys": [
+        "team"
+      ],
+      "dimensions": [
+        "team",
+        "league"
+      ],
+      "measures": [
+        "total_matches",
+        "overall_win_prob",
+        "ranking"
+      ]
+    },
+    {
+      "filename": "model_performance.csv",
+      "description": "Model performance metrics",
+      "record_count": 8,
+      "last_updated": "2026-04-29 19:05:30",
+      "primary_keys": [
+        "metric"
+      ],
+      "dimensions": [
+        "metric",
+        "category"
+      ],
+      "measures": [
+        "value"
+      ]
+    },
+    {
+      "filename": "feature_importance.csv",
+      "description": "Feature importance rankings",
+      "record_count": 54,
+      "last_updated": "2026-04-29 19:05:30",
+      "primary_keys": [
+        "feature_name"
+      ],
+      "dimensions": [
+        "feature_name",
+        "feature_category"
+      ],
+      "measures": [
+        "importance_score",
+        "rank"
+      ]
+    },
+    {
+      "filename": "league_statistics.csv",
+      "description": "League-level statistics and comparisons",
+      "record_count": 1,
+      "last_updated": "2026-04-29 19:05:30",
+      "primary_keys": [
+        "league"
+      ],
+      "dimensions": [
+        "league"
+      ],
+      "measures": [
+        "total_matches",
+        "home_win_rate",
+        "draw_rate",
+        "away_win_rate"
+      ]
+    }
+  ],
+  "tableau_version": "2019.3",
+  "data_format": "CSV",
+  "encoding": "UTF-8",
+  "date_format": "YYYY-MM-DD",
+  "created_by": "Soccer Prediction System",
+  "created_date": "2026-04-29 19:05:30"
+}

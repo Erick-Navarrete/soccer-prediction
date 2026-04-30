@@ -1,0 +1,34 @@
+{
+  "scheduler_info": {
+    "created": "2026-04-29 19:20:32",
+    "project_root": "D:\\Project_App\\soccer-prediction",
+    "tableau_dir": "D:\\Project_App\\soccer-prediction\\outputs\\tableau_data"
+  },
+  "schedule_options": {
+    "daily": {
+      "description": "Run once daily at 6 AM",
+      "windows_command": "schtasks /Create /TN \"Tableau Data Refresh\" /TR \"D:\\Project_App\\soccer-prediction\\refresh_tableau_data.bat\" /SC DAILY /ST 06:00",
+      "cron_entry": "0 6 * * * D:\\Project_App\\soccer-prediction/refresh_tableau_data.sh"
+    },
+    "twice_daily": {
+      "description": "Run twice daily at 6 AM and 6 PM",
+      "windows_command": "schtasks /Create /TN \"Tableau Data Refresh\" /TR \"D:\\Project_App\\soccer-prediction\\refresh_tableau_data.bat\" /SC DAILY /ST 06:00",
+      "cron_entry": "0 6,18 * * * D:\\Project_App\\soccer-prediction/refresh_tableau_data.sh"
+    },
+    "hourly": {
+      "description": "Run every hour",
+      "windows_command": "schtasks /Create /TN \"Tableau Data Refresh\" /TR \"D:\\Project_App\\soccer-prediction\\refresh_tableau_data.bat\" /SC HOURLY",
+      "cron_entry": "0 * * * * D:\\Project_App\\soccer-prediction/refresh_tableau_data.sh"
+    }
+  },
+  "manual_refresh": {
+    "quick": "python tableau_refresh.py --mode quick",
+    "scheduled": "python tableau_refresh.py --mode scheduled",
+    "full": "python tableau_refresh.py --mode full"
+  },
+  "files_created": {
+    "windows_batch": "D:\\Project_App\\soccer-prediction\\refresh_tableau_data.bat",
+    "linux_script": "D:\\Project_App\\soccer-prediction\\refresh_tableau_data.sh",
+    "task_xml": "D:\\Project_App\\soccer-prediction\\outputs\\tableau_data\\tableau_refresh_task.xml"
+  }
+}

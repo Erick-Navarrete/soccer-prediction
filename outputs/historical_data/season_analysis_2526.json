@@ -1,0 +1,28 @@
+{
+  "season_overview": {
+    "total_matches": 339,
+    "home_wins": 143,
+    "draws": 90,
+    "away_wins": 106,
+    "home_win_rate": 0.422,
+    "draw_rate": 0.265,
+    "away_win_rate": 0.313
+  },
+  "goal_statistics": {
+    "total_goals": 927,
+    "avg_goals_per_match": 2.73,
+    "home_goals": 508,
+    "away_goals": 419,
+    "avg_home_goals": 1.5,
+    "avg_away_goals": 1.24
+  },
+  "betting_insights": {
+    "over_2_5_matches": 184,
+    "under_2_5_matches": 155,
+    "over_2_5_rate": 0.543,
+    "high_scoring_matches": 96,
+    "high_scoring_rate": 0.283,
+    "scoreless_matches": 26,
+    "scoreless_rate": 0.077
+  }
+}

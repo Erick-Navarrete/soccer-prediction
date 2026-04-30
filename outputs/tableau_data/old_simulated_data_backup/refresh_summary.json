@@ -1,0 +1,85 @@
+{
+  "refresh_timestamp": "2026-04-29 19:35:19",
+  "refresh_status": "completed",
+  "data_files": [
+    {
+      "filename": "confidence_intervals.csv",
+      "size_bytes": 3138,
+      "last_modified": "2026-04-29 19:27:24",
+      "record_count": 10
+    },
+    {
+      "filename": "feature_importance.csv",
+      "size_bytes": 2896,
+      "last_modified": "2026-04-29 19:35:19",
+      "record_count": 54
+    },
+    {
+      "filename": "head_to_head_analysis.csv",
+      "size_bytes": 1840,
+      "last_modified": "2026-04-29 19:27:24",
+      "record_count": 10
+    },
+    {
+      "filename": "league_statistics.csv",
+      "size_bytes": 240,
+      "last_modified": "2026-04-29 19:35:19",
+      "record_count": 1
+    },
+    {
+      "filename": "master_calendar.csv",
+      "size_bytes": 149,
+      "last_modified": "2026-04-29 19:35:19",
+      "record_count": 1
+    },
+    {
+      "filename": "match_predictions.csv",
+      "size_bytes": 1867,
+      "last_modified": "2026-04-29 19:35:19",
+      "record_count": 10
+    },
+    {
+      "filename": "model_performance.csv",
+      "size_bytes": 555,
+      "last_modified": "2026-04-29 19:35:19",
+      "record_count": 8
+    },
+    {
+      "filename": "predictive_accuracy.csv",
+      "size_bytes": 450,
+      "last_modified": "2026-04-29 19:27:24",
+      "record_count": 8
+    },
+    {
+      "filename": "probability_distribution.csv",
+      "size_bytes": 1158,
+      "last_modified": "2026-04-29 19:27:24",
+      "record_count": 30
+    },
+    {
+      "filename": "team_performance_trends.csv",
+      "size_bytes": 3519,
+      "last_modified": "2026-04-29 19:27:24",
+      "record_count": 20
+    },
+    {
+      "filename": "team_rankings.csv",
+      "size_bytes": 1552,
+      "last_modified": "2026-04-29 19:35:19",
+      "record_count": 20
+    },
+    {
+      "filename": "trend_analysis.csv",
+      "size_bytes": 614,
+      "last_modified": "2026-04-29 19:27:24",
+      "record_count": 1
+    }
+  ],
+  "model_info": {
+    "model_file": "ensemble_model.pkl",
+    "size_bytes": 4059781,
+    "last_modified": "2026-04-28 20:42:26"
+  },
+  "prediction_count": 10,
+  "last_model_update": null
+}

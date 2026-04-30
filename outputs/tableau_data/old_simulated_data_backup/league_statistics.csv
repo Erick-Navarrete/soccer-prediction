@@ -1,0 +1,2 @@
+league,total_matches,home_win_rate,draw_rate,away_win_rate,avg_home_win_prob,avg_draw_prob,avg_away_win_prob,high_confidence_matches,unique_teams
+Premier League,10,0.2,0.3,0.5,0.27848933508038876,0.218332601781905,0.5031780631377062,6,20

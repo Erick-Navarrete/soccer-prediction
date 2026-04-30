@@ -1,0 +1,29 @@
+{
+  "dashboard_name": "Tableau Data Refresh Monitor",
+  "refresh_schedule": "Daily at 6:00 AM",
+  "last_refresh": null,
+  "next_refresh": null,
+  "status": "Active",
+  "metrics_to_track": [
+    "refresh_success_rate",
+    "data_volume",
+    "prediction_count",
+    "processing_time",
+    "error_count"
+  ],
+  "alert_thresholds": {
+    "max_processing_time_minutes": 30,
+    "min_prediction_count": 1,
+    "max_error_rate_percent": 5
+  },
+  "log_files": [
+    "D:\\Project_App\\soccer-prediction\\outputs\\tableau_data\\refresh.log",
+    "D:\\Project_App\\soccer-prediction\\outputs\\tableau_data\\scheduler.log",
+    "D:\\Project_App\\soccer-prediction\\outputs\\tableau_data\\cron.log"
+  ],
+  "data_files": [
+    "D:\\Project_App\\soccer-prediction\\outputs\\tableau_data\\match_predictions.csv",
+    "D:\\Project_App\\soccer-prediction\\outputs\\tableau_data\\team_rankings.csv",
+    "D:\\Project_App\\soccer-prediction\\outputs\\tableau_data\\model_performance.csv"
+  ]
+}

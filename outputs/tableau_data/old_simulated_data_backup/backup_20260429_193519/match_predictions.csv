@@ -1,0 +1,11 @@
+date,home_team,away_team,home_win_prob,draw_prob,away_win_prob,prediction,actual_result,league,confidence_level,prediction_text,actual_result_text,home_win_pct,draw_pct,away_win_pct,year,month,day_of_week,prediction_correct
+2025-05-25,Bournemouth,Leicester,0.9278420505887576,0.0610700276593066,0.0110879217519359,2,2,Premier League,High,Home Win,Home Win,92.78,6.11,1.11,2025,5,Sunday,True
+2025-05-25,Fulham,Man City,0.0233259830635662,0.0544629382762464,0.9222110786601871,0,0,Premier League,High,Away Win,Away Win,2.33,5.45,92.22,2025,5,Sunday,True
+2025-05-25,Wolves,Brentford,0.2667408427985488,0.5746100220343485,0.1586491351671028,1,1,Premier League,Medium,Draw,Draw,26.67,57.46,15.86,2025,5,Sunday,True
+2025-05-25,Liverpool,Crystal Palace,0.4228418017035495,0.4841033735919964,0.093054824704454,1,1,Premier League,Low,Draw,Draw,42.28,48.41,9.31,2025,5,Sunday,True
+2025-05-25,Tottenham,Brighton,0.0310141929062064,0.0593645997683497,0.9096212073254438,0,0,Premier League,High,Away Win,Away Win,3.1,5.94,90.96,2025,5,Sunday,True
+2025-05-25,Nott'm Forest,Chelsea,0.0711101314377285,0.2708622859772707,0.6580275825850009,0,0,Premier League,Medium,Away Win,Away Win,7.11,27.09,65.8,2025,5,Sunday,True
+2025-05-25,Newcastle,Everton,0.1601511993213432,0.4266357858391181,0.4132130148395387,1,0,Premier League,Low,Draw,Away Win,16.02,42.66,41.32,2025,5,Sunday,False
+2025-05-25,Man United,Aston Villa,0.8108428413759663,0.0933380600488134,0.0958190985752203,2,2,Premier League,High,Home Win,Home Win,81.08,9.33,9.58,2025,5,Sunday,True
+2025-05-25,Ipswich,West Ham,0.0339723897412892,0.0601519476060008,0.90587566265271,0,0,Premier League,High,Away Win,Away Win,3.4,6.02,90.59,2025,5,Sunday,True
+2025-05-25,Southampton,Arsenal,0.0370519178669318,0.0987269770175995,0.8642211051154685,0,0,Premier League,High,Away Win,Away Win,3.71,9.87,86.42,2025,5,Sunday,True
