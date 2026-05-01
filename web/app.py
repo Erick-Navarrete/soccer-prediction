@@ -5,7 +5,7 @@ A mobile-friendly web interface for viewing soccer match predictions
 with real-time updates and interactive visualizations.
 """
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_file
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
@@ -666,6 +666,25 @@ def api_results():
             "success": False,
             "error": str(e),
             "data": []
+        }), 500
+
+
+@app.route('/data/<path:filename>')
+def serve_data(filename):
+    """Serve data files."""
+    try:
+        data_path = Path(__file__).parent.parent / "data" / filename
+        if data_path.exists():
+            return send_file(data_path)
+        else:
+            return jsonify({
+                "success": False,
+                "message": "File not found"
+            }), 404
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
         }), 500
 
 

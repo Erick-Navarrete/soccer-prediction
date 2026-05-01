@@ -7,10 +7,12 @@ let predictions = [];
 let teams = [];
 let performance = {};
 let historical = [];
+let darkMode = false;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     initializeTabs();
+    initializeDarkMode();
     loadAllData();
     setInterval(loadAllData, 60000); // Refresh every minute
 });
@@ -46,16 +48,93 @@ function switchTab(tabName) {
     currentTab = tabName;
 }
 
+// Dark Mode Functions
+function initializeDarkMode() {
+    // Check for saved preference
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode === 'true') {
+        darkMode = true;
+        enableDarkMode();
+    }
+
+    // Check system preference
+    if (!savedMode && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        darkMode = true;
+        enableDarkMode();
+    }
+}
+
+function toggleDarkMode() {
+    darkMode = !darkMode;
+    localStorage.setItem('darkMode', darkMode);
+
+    if (darkMode) {
+        enableDarkMode();
+    } else {
+        disableDarkMode();
+    }
+}
+
+function enableDarkMode() {
+    const darkStylesheet = document.getElementById('dark-mode-stylesheet');
+    const toggleBtn = document.getElementById('dark-mode-toggle');
+
+    if (darkStylesheet) {
+        darkStylesheet.disabled = false;
+    }
+
+    if (toggleBtn) {
+        toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+
+    // Add dark mode class to body
+    document.body.classList.add('dark-mode');
+}
+
+function disableDarkMode() {
+    const darkStylesheet = document.getElementById('dark-mode-stylesheet');
+    const toggleBtn = document.getElementById('dark-mode-toggle');
+
+    if (darkStylesheet) {
+        darkStylesheet.disabled = true;
+    }
+
+    if (toggleBtn) {
+        toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+    }
+
+    // Remove dark mode class from body
+    document.body.classList.remove('dark-mode');
+}
+
 // Load All Data
 async function loadAllData() {
     try {
+        // Try enhanced data first
+        const enhancedSuccess = await Promise.all([
+            loadEnhancedPremierLeagueData(),
+            loadEnhancedTeamStats()
+        ]);
+
+        // If enhanced data failed, fall back to regular data
+        if (!enhancedSuccess[0]) {
+            await loadPredictions();
+        }
+        if (!enhancedSuccess[1]) {
+            await loadTeams();
+        }
+
         await Promise.all([
-            loadPredictions(),
             loadHistorical(),
             loadHistoricalStats(),
-            loadTeams(),
             loadPerformance()
         ]);
+
+        // Update performance display with enhanced features
+        if (performance && Object.keys(performance).length > 0) {
+            renderEnhancedPerformance();
+        }
+
         updateLastUpdated();
     } catch (error) {
         console.error('Error loading data:', error);
@@ -498,4 +577,304 @@ function showErrorMessage(containerId, message) {
             <p>${message}</p>
         </div>
     `;
+}
+
+// Enhanced Data Visualization Functions
+function createEnhancedPredictionCard(pred) {
+    const confidenceColor = getConfidenceColor(pred.confidence);
+    const predictionIcon = getPredictionIcon(pred.prediction);
+
+    return `
+        <div class="prediction-card ${darkMode ? 'dark-mode' : ''}" onclick="showMatchDetail(${pred.id})">
+            <div class="prediction-header">
+                <span class="match-date">
+                    <i class="fas fa-calendar"></i> ${pred.date}
+                </span>
+                <span class="league-badge">${pred.league}</span>
+            </div>
+
+            <div class="match-teams">
+                <div class="team">
+                    <div class="team-name">${pred.home_team}</div>
+                    <div class="team-elo">ELO: ${pred.home_elo}</div>
+                </div>
+                <div class="vs">VS</div>
+                <div class="team">
+                    <div class="team-name">${pred.away_team}</div>
+                    <div class="team-elo">ELO: ${pred.away_elo}</div>
+                </div>
+            </div>
+
+            <div class="prediction-result">
+                <div class="prediction-label">Prediction</div>
+                <div class="prediction-value" style="color: ${confidenceColor}">
+                    ${predictionIcon} ${pred.prediction}
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: ${pred.confidence}%; background: ${confidenceColor}"></div>
+                </div>
+                <div style="margin-top: 10px; font-size: 0.9rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'};">
+                    Confidence: ${pred.confidence}%
+                </div>
+            </div>
+
+            <div class="probabilities">
+                <div class="prob-item">
+                    <div class="prob-label">Home Win</div>
+                    <div class="prob-value prob-home">${pred.home_prob}%</div>
+                </div>
+                <div class="prob-item">
+                    <div class="prob-label">Draw</div>
+                    <div class="prob-value prob-draw">${pred.draw_prob}%</div>
+                </div>
+                <div class="prob-item">
+                    <div class="prob-label">Away Win</div>
+                    <div class="prob-value prob-away">${pred.away_prob}%</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getConfidenceColor(confidence) {
+    if (confidence >= 70) return '#4ade80'; // Green for high confidence
+    if (confidence >= 50) return '#667eea'; // Blue for medium confidence
+    return '#fbbf24'; // Yellow for low confidence
+}
+
+function getPredictionIcon(prediction) {
+    switch(prediction) {
+        case 'Home Win': return '<i class="fas fa-home"></i>';
+        case 'Away Win': return '<i class="fas fa-plane"></i>';
+        case 'Draw': return '<i class="fas fa-handshake"></i>';
+        default: return '';
+    }
+}
+
+function createEnhancedTeamCard(team) {
+    const rankColor = getRankColor(team.rank);
+
+    return `
+        <div class="team-card ${darkMode ? 'dark-mode' : ''}">
+            <div class="team-rank" style="color: ${rankColor}">#${team.rank}</div>
+            <div class="team-info">
+                <div class="team-name-display">${team.team}</div>
+            </div>
+            <div class="team-elo-display" style="color: ${rankColor}">${team.elo}</div>
+        </div>
+    `;
+}
+
+function getRankColor(rank) {
+    if (rank <= 4) return '#4ade80'; // Champions League spots
+    if (rank <= 6) return '#667eea'; // Europa League spots
+    if (rank >= 18) return '#f87171'; // Relegation zone
+    return '#e0e0e0'; // Mid-table
+}
+
+function createEnhancedPerformanceCard(title, value, label, icon, color) {
+    return `
+        <div class="performance-card ${darkMode ? 'dark-mode' : ''}" style="border-left: 4px solid ${color}">
+            <div class="card-icon" style="color: ${color}">
+                <i class="fas ${icon}"></i>
+            </div>
+            <div class="card-content">
+                <h3>${title}</h3>
+                <p class="card-value" style="color: ${color}">${value}</p>
+                <p class="card-label">${label}</p>
+            </div>
+        </div>
+    `;
+}
+
+function createEnhancedHistoricalCard(pred) {
+    const resultClass = pred.is_correct ? 'correct' : 'incorrect';
+    const resultIcon = pred.is_correct ? 'fa-check-circle' : 'fa-times-circle';
+    const resultColor = pred.is_correct ? '#4ade80' : '#f87171';
+
+    return `
+        <div class="prediction-card ${resultClass} ${darkMode ? 'dark-mode' : ''}">
+            <div class="prediction-header">
+                <span class="match-date">
+                    <i class="fas fa-calendar"></i> ${pred.date}
+                </span>
+                <span class="result-badge ${resultClass}" style="background: ${resultColor}">
+                    <i class="fas ${resultIcon}"></i>
+                    ${pred.is_correct ? 'Correct' : 'Incorrect'}
+                </span>
+            </div>
+
+            <div class="match-teams">
+                <div class="team">
+                    <div class="team-name">${pred.home_team}</div>
+                    <div class="team-score">${pred.home_goals}</div>
+                </div>
+                <div class="vs">${pred.home_goals} - ${pred.away_goals}</div>
+                <div class="team">
+                    <div class="team-name">${pred.away_team}</div>
+                    <div class="team-score">${pred.away_goals}</div>
+                </div>
+            </div>
+
+            <div class="prediction-result">
+                <div class="prediction-label">Prediction vs Actual</div>
+                <div class="prediction-comparison">
+                    <div class="comparison-item">
+                        <span class="comparison-label">Predicted:</span>
+                        <span class="comparison-value prediction">${pred.prediction}</span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">Actual:</span>
+                        <span class="comparison-value actual">${pred.actual}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="probabilities">
+                <div class="prob-item">
+                    <div class="prob-label">Home Win</div>
+                    <div class="prob-value prob-home">${pred.home_prob}%</div>
+                </div>
+                <div class="prob-item">
+                    <div class="prob-label">Draw</div>
+                    <div class="prob-value prob-draw">${pred.draw_prob}%</div>
+                </div>
+                <div class="prob-item">
+                    <div class="prob-label">Away Win</div>
+                    <div class="prob-value prob-away">${pred.away_prob}%</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Load Enhanced Premier League Data
+async function loadEnhancedPremierLeagueData() {
+    try {
+        const response = await fetch('/data/premier_league_matches_2526_improved.json');
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            // Update predictions with enhanced data
+            predictions = data.slice(0, 20); // Take first 20 matches
+            renderEnhancedPredictions();
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error loading enhanced Premier League data:', error);
+        return false;
+    }
+}
+
+function renderEnhancedPredictions() {
+    const container = document.getElementById('predictions-list');
+
+    if (predictions.length === 0) {
+        container.innerHTML = `
+            <div class="loading">
+                <i class="fas fa-calendar-times"></i>
+                <p>No upcoming matches found</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = predictions.map(pred => createEnhancedPredictionCard(pred)).join('');
+}
+
+// Load Enhanced Team Statistics
+async function loadEnhancedTeamStats() {
+    try {
+        const response = await fetch('/data/team_statistics_2526.json');
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            teams = data.slice(0, 10); // Take top 10 teams
+            renderEnhancedTeams();
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error loading enhanced team statistics:', error);
+        return false;
+    }
+}
+
+function renderEnhancedTeams() {
+    const container = document.getElementById('teams-list');
+
+    if (teams.length === 0) {
+        container.innerHTML = `
+            <div class="loading">
+                <i class="fas fa-users"></i>
+                <p>No teams data available</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = teams.map(team => createEnhancedTeamCard(team)).join('');
+}
+
+// Enhanced Performance Display
+function renderEnhancedPerformance() {
+    const performanceGrid = document.querySelector('.performance-grid');
+    if (!performanceGrid) return;
+
+    const enhancedCards = [
+        createEnhancedPerformanceCard(
+            'Accuracy',
+            performance.accuracy ? `${performance.accuracy}%` : '--%',
+            'Overall prediction accuracy',
+            'fa-bullseye',
+            '#4ade80'
+        ),
+        createEnhancedPerformanceCard(
+            'Log Loss',
+            performance.log_loss ? performance.log_loss.toFixed(3) : '--',
+            'Probability calibration',
+            'fa-chart-line',
+            '#667eea'
+        ),
+        createEnhancedPerformanceCard(
+            'Total Predictions',
+            performance.total_predictions ? performance.total_predictions.toLocaleString() : '--',
+            'Matches analyzed',
+            'fa-database',
+            '#fbbf24'
+        ),
+        createEnhancedPerformanceCard(
+            'Last Updated',
+            performance.last_updated || '--',
+            'Model training date',
+            'fa-clock',
+            '#f87171'
+        )
+    ];
+
+    performanceGrid.innerHTML = enhancedCards.join('');
+}
+
+// Initialize Enhanced Features
+function initializeEnhancedFeatures() {
+    // Try to load enhanced data first
+    loadEnhancedPremierLeagueData().then(success => {
+        if (!success) {
+            // Fall back to regular predictions
+            loadPredictions();
+        }
+    });
+
+    loadEnhancedTeamStats().then(success => {
+        if (!success) {
+            // Fall back to regular teams
+            loadTeams();
+        }
+    });
+
+    // Enhance performance display
+    if (performance && Object.keys(performance).length > 0) {
+        renderEnhancedPerformance();
+    }
 }
