@@ -650,6 +650,43 @@ def api_historical_insights():
         }), 500
 
 
+@app.route('/api/historical-data-table')
+def api_historical_data_table():
+    """Get historical data in table format API endpoint."""
+    try:
+        data_path = Path(__file__).parent.parent / "outputs" / "historical_data" / "premier_league_matches_2526_improved.csv"
+
+        if data_path.exists():
+            df = pd.read_csv(data_path)
+
+            # Convert to list of dictionaries
+            data = df.to_dict('records')
+
+            # Limit to first 1000 records for performance
+            if len(data) > 1000:
+                data = data[:1000]
+
+            return jsonify({
+                "success": True,
+                "data": data,
+                "count": len(data),
+                "total": len(df),
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Historical data file not found"
+            }), 404
+
+    except Exception as e:
+        print(f"Error loading historical data table: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
 @app.route('/api/status')
 def api_status():
     """Get system status and last updated timestamp."""

@@ -10,10 +10,45 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Hamburger Menu Button -->
+    <button class="hamburger-menu" id="hamburger-menu" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <!-- Dark Mode Toggle -->
     <button class="dark-mode-toggle" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
         <i class="fas fa-moon"></i>
     </button>
+
+    <!-- Mobile Navigation Menu -->
+    <div class="mobile-nav-menu" id="mobile-nav-menu">
+        <div class="mobile-nav-header">
+            <div class="nav-brand">
+                <i class="fas fa-futbol"></i>
+                <span>SoccerAI</span>
+            </div>
+            <button class="close-menu" onclick="toggleMobileMenu()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mobile-nav-links">
+            <a href="#predictions" class="mobile-nav-link" data-section="predictions" onclick="toggleMobileMenu()">
+                <i class="fas fa-chart-line"></i> Predictions
+            </a>
+            <a href="#historical" class="mobile-nav-link" data-section="historical" onclick="toggleMobileMenu()">
+                <i class="fas fa-history"></i> Historical
+            </a>
+            <a href="#teams" class="mobile-nav-link" data-section="teams" onclick="toggleMobileMenu()">
+                <i class="fas fa-trophy"></i> Standings
+            </a>
+            <a href="#performance" class="mobile-nav-link" data-section="performance" onclick="toggleMobileMenu()">
+                <i class="fas fa-chart-bar"></i> Analytics
+            </a>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="toggleMobileMenu()"></div>
 
     <!-- Modern Navigation -->
     <nav class="modern-nav">
@@ -232,15 +267,20 @@
         <section class="content-section" id="performance-section">
             <div class="section-header">
                 <div>
-                    <h2 class="section-title">Performance Analytics</h2>
-                    <p class="section-subtitle">Model performance metrics and insights</p>
+                    <h2 class="section-title">Historical Data Analytics</h2>
+                    <p class="section-subtitle">Complete Premier League 2025-2026 season data</p>
+                </div>
+                <div class="table-controls">
+                    <button class="modern-btn" onclick="exportTable()">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
                 </div>
             </div>
 
-            <div class="performance-grid" id="performance-grid">
+            <div class="data-table-container" id="data-table-container">
                 <div class="loading">
                     <i class="fas fa-spinner fa-spin"></i>
-                    <p>Loading analytics...</p>
+                    <p>Loading historical data...</p>
                 </div>
             </div>
         </section>

@@ -1215,6 +1215,264 @@ body {
     padding: 2rem;
 }
 
+/* Hamburger Menu */
+.hamburger-menu {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1002;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
+}
+
+.hamburger-menu:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-xl);
+}
+
+.hamburger-menu:active {
+    transform: scale(0.95);
+}
+
+/* Mobile Navigation Menu */
+.mobile-nav-menu {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 300px;
+    height: 100vh;
+    background: white;
+    z-index: 1001;
+    box-shadow: var(--shadow-xl);
+    transition: left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-nav-menu.active {
+    left: 0;
+}
+
+.mobile-nav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.mobile-nav-header .nav-brand {
+    color: white;
+}
+
+.mobile-nav-header .nav-brand i {
+    color: white;
+}
+
+.mobile-nav-header .nav-brand span {
+    color: white;
+}
+
+.close-menu {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.close-menu:hover {
+    transform: rotate(90deg);
+}
+
+.mobile-nav-links {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+    overflow-y: auto;
+}
+
+.mobile-nav-link {
+    padding: 1rem 1.5rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.mobile-nav-link:hover {
+    background: var(--bg-tertiary);
+    color: var(--primary-color);
+    border-left-color: var(--primary-color);
+}
+
+.mobile-nav-link.active {
+    background: var(--bg-tertiary);
+    color: var(--primary-color);
+    border-left-color: var(--primary-color);
+}
+
+.mobile-nav-link i {
+    font-size: 1.1rem;
+}
+
+/* Overlay */
+.mobile-nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.mobile-nav-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Data Table Container */
+.data-table-container {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.data-table-wrapper {
+    overflow-x: auto;
+    max-height: 600px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.data-table thead {
+    position: sticky;
+    top: 0;
+    background: var(--bg-secondary);
+    z-index: 10;
+}
+
+.data-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.data-table th:hover {
+    background: var(--bg-tertiary);
+}
+
+.data-table th.sortable::after {
+    content: ' ⇅';
+    opacity: 0.3;
+    margin-left: 0.25rem;
+}
+
+.data-table th.sort-asc::after {
+    content: ' ↑';
+    opacity: 1;
+}
+
+.data-table th.sort-desc::after {
+    content: ' ↓';
+    opacity: 1;
+}
+
+.data-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.data-table tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Result badges in table */
+.table-result-home {
+    background: var(--success-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.table-result-draw {
+    background: var(--warning-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.table-result-away {
+    background: var(--danger-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Table Controls */
+.table-controls {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Table Footer */
+.table-footer {
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
 /* Dark Mode Toggle */
 .dark-mode-toggle {
     position: fixed;
@@ -1243,6 +1501,321 @@ body {
 
 .dark-mode-toggle:active {
     transform: scale(0.95);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .hero-visual {
+        display: none;
+    }
+
+    .nav-menu {
+        gap: 0.25rem;
+    }
+
+    .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .nav-link span {
+        display: none;
+    }
+
+    .nav-link i {
+        font-size: 1.25rem;
+    }
+
+    .hamburger-menu {
+        display: flex;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0.75rem 1rem;
+    }
+
+    .nav-brand span {
+        display: none;
+    }
+
+    .nav-brand i {
+        font-size: 1.5rem;
+    }
+
+    .nav-menu-left {
+        display: none;
+    }
+
+    .nav-stats {
+        display: none;
+    }
+
+    .hamburger-menu {
+        display: flex;
+        top: 1rem;
+        left: 1rem;
+    }
+
+    .dark-mode-toggle {
+        top: auto;
+        bottom: 1rem;
+        right: 1rem;
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+
+    .hero-section {
+        padding: 5rem 1rem 2rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+
+    .hero-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .hero-stats {
+        gap: 1rem;
+    }
+
+    .hero-stat .stat-number {
+        font-size: 1.75rem;
+    }
+
+    .hero-stat .stat-text {
+        font-size: 0.875rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+    }
+
+    .section-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .predictions-grid,
+    .historical-list,
+    .teams-grid,
+    .performance-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .prediction-card,
+    .team-card,
+    .stat-card {
+        padding: 1.25rem;
+    }
+
+    .match-teams {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .vs {
+        padding: 0.5rem 0;
+    }
+
+    .probabilities {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .footer-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .footer-info {
+        text-align: center;
+    }
+
+    .modal-content {
+        margin: 1rem;
+        max-height: 85vh;
+    }
+
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .data-table {
+        font-size: 0.75rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.5rem;
+    }
+
+    .mobile-nav-menu {
+        width: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-container {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .nav-brand i {
+        font-size: 1.25rem;
+    }
+
+    .nav-link {
+        padding: 0.5rem;
+    }
+
+    .nav-link i {
+        font-size: 1.1rem;
+    }
+
+    .hamburger-menu {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+        top: 0.75rem;
+        left: 0.75rem;
+    }
+
+    .dark-mode-toggle {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        bottom: 0.75rem;
+        right: 0.75rem;
+    }
+
+    .hero-section {
+        padding: 4.5rem 0.75rem 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.875rem;
+    }
+
+    .hero-stats {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .hero-stat .stat-number {
+        font-size: 1.5rem;
+    }
+
+    .hero-stat .stat-text {
+        font-size: 0.8rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+    }
+
+    .section-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .modern-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .prediction-card,
+    .team-card,
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .team-name {
+        font-size: 1rem;
+    }
+
+    .team-elo {
+        font-size: 0.8rem;
+    }
+
+    .prediction-value {
+        font-size: 1.25rem;
+    }
+
+    .prob-value {
+        font-size: 1.1rem;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+    }
+
+    .modal-content {
+        margin: 0.5rem;
+        padding: 1rem;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+
+    .modal-header h3 {
+        font-size: 1.25rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .insight-card {
+        padding: 1rem;
+    }
+
+    .insight-card h4 {
+        font-size: 1rem;
+    }
+
+    .insight-card ul {
+        font-size: 0.875rem;
+    }
+
+    .data-table {
+        font-size: 0.7rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.4rem;
+    }
+
+    .mobile-nav-menu {
+        width: 260px;
+    }
 }
 
 /* Responsive Design */

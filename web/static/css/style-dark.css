@@ -791,6 +791,105 @@ body {
     padding: 25px;
 }
 
+/* Hamburger Menu - Dark Mode */
+.hamburger-menu {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.hamburger-menu:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+/* Mobile Navigation Menu - Dark Mode */
+.mobile-nav-menu {
+    background: rgba(26, 26, 46, 0.95);
+    border-right: 1px solid rgba(102, 126, 234, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.mobile-nav-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.mobile-nav-link {
+    color: #e0e0e0;
+    border-left-color: transparent;
+}
+
+.mobile-nav-link:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    border-left-color: #667eea;
+}
+
+.mobile-nav-link.active {
+    background: rgba(102, 126, 234, 0.15);
+    color: #667eea;
+    border-left-color: #667eea;
+}
+
+/* Data Table Container - Dark Mode */
+.data-table-container {
+    background: rgba(30, 30, 50, 0.8);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.data-table thead {
+    background: rgba(20, 20, 35, 0.8);
+}
+
+.data-table th {
+    color: #e0e0e0;
+    border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.data-table th:hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.data-table td {
+    color: #e0e0e0;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.data-table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.table-result-home {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    box-shadow: 0 2px 10px rgba(74, 222, 128, 0.3);
+}
+
+.table-result-draw {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    box-shadow: 0 2px 10px rgba(251, 191, 36, 0.3);
+}
+
+.table-result-away {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    box-shadow: 0 2px 10px rgba(248, 113, 113, 0.3);
+}
+
+.table-footer {
+    background: rgba(20, 20, 35, 0.8);
+    border-top: 1px solid rgba(102, 126, 234, 0.2);
+    color: #a0a0a0;
+}
+
+/* Dark Mode Toggle */
+.dark-mode-toggle {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.dark-mode-toggle:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
 /* Dark Mode Toggle */
 .dark-mode-toggle {
     position: fixed;

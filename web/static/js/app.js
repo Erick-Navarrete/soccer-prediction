@@ -7,6 +7,7 @@ let predictions = [];
 let teams = [];
 let performance = {};
 let historical = [];
+let historicalData = [];
 let darkMode = false;
 
 // Initialize
@@ -16,6 +17,15 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAllData();
     setInterval(loadAllData, 60000); // Refresh every minute
 });
+
+// Mobile Menu Functions
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-nav-menu');
+    const overlay = document.getElementById('mobile-nav-overlay');
+
+    menu.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
 
 // Tab Navigation
 function initializeTabs() {
@@ -119,7 +129,8 @@ async function loadAllData() {
             loadTeams(),
             loadPerformance(),
             loadInsights(),
-            loadHistoricalInsights()
+            loadHistoricalInsights(),
+            loadHistoricalDataTable()
         ]);
 
         // Update performance display with enhanced features
@@ -189,6 +200,167 @@ async function loadHistoricalInsights() {
     } catch (error) {
         console.error('Error loading historical insights:', error);
     }
+}
+
+// Load Historical Data Table
+async function loadHistoricalDataTable() {
+    try {
+        const response = await fetch(`${API_BASE}/historical-data-table`);
+        const result = await response.json();
+
+        if (result.success && result.data) {
+            historicalData = result.data;
+            renderHistoricalDataTable();
+        }
+    } catch (error) {
+        console.error('Error loading historical data table:', error);
+        showErrorMessage('data-table-container', 'Failed to load historical data');
+    }
+}
+
+// Render Historical Data Table
+function renderHistoricalDataTable() {
+    const container = document.getElementById('data-table-container');
+
+    if (!historicalData || historicalData.length === 0) {
+        container.innerHTML = `
+            <div class="loading">
+                <i class="fas fa-database"></i>
+                <p>No historical data available</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Define columns to display
+    const columns = [
+        { key: 'MatchDate', label: 'Date' },
+        { key: 'MatchTime', label: 'Time' },
+        { key: 'HomeTeam', label: 'Home Team' },
+        { key: 'AwayTeam', label: 'Away Team' },
+        { key: 'FullTimeHomeGoals', label: 'Home Goals' },
+        { key: 'FullTimeAwayGoals', label: 'Away Goals' },
+        { key: 'FullTimeResult', label: 'Result' },
+        { key: 'TotalGoals', label: 'Total Goals' },
+        { key: 'AverageHomeOdds', label: 'Home Odds' },
+        { key: 'AverageDrawOdds', label: 'Draw Odds' },
+        { key: 'AverageAwayOdds', label: 'Away Odds' }
+    ];
+
+    // Create table HTML
+    let html = `
+        <div class="data-table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        ${columns.map(col => `
+                            <th class="sortable" onclick="sortTable('${col.key}')">
+                                ${col.label}
+                            </th>
+                        `).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${historicalData.map(row => `
+                        <tr>
+                            ${columns.map(col => `
+                                <td>${formatTableCell(col.key, row[col.key])}</td>
+                            `).join('')}
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        <div class="table-footer">
+            <span>Total: ${historicalData.length} matches</span>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+
+// Format table cell value
+function formatTableCell(key, value) {
+    if (value === null || value === undefined || value === '') {
+        return '-';
+    }
+
+    // Format result
+    if (key === 'FullTimeResult') {
+        if (value === 'H') return '<span class="table-result-home">Home Win</span>';
+        if (value === 'D') return '<span class="table-result-draw">Draw</span>';
+        if (value === 'A') return '<span class="table-result-away">Away Win</span>';
+        return value;
+    }
+
+    // Format odds
+    if (key.includes('Odds')) {
+        return parseFloat(value).toFixed(2);
+    }
+
+    // Format goals
+    if (key.includes('Goals')) {
+        return parseInt(value);
+    }
+
+    return value;
+}
+
+// Sort table
+let currentSort = { column: null, direction: 'asc' };
+
+function sortTable(column) {
+    if (currentSort.column === column) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSort.column = column;
+        currentSort.direction = 'asc';
+    }
+
+    historicalData.sort((a, b) => {
+        let aVal = a[column];
+        let bVal = b[column];
+
+        // Handle numeric values
+        if (!isNaN(aVal) && !isNaN(bVal)) {
+            aVal = parseFloat(aVal);
+            bVal = parseFloat(bVal);
+        }
+
+        if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    renderHistoricalDataTable();
+}
+
+// Export table to CSV
+function exportTable() {
+    if (!historicalData || historicalData.length === 0) {
+        alert('No data to export');
+        return;
+    }
+
+    const columns = [
+        'MatchDate', 'MatchTime', 'HomeTeam', 'AwayTeam',
+        'FullTimeHomeGoals', 'FullTimeAwayGoals', 'FullTimeResult',
+        'TotalGoals', 'AverageHomeOdds', 'AverageDrawOdds', 'AverageAwayOdds'
+    ];
+
+    const headers = columns.join(',');
+    const rows = historicalData.map(row =>
+        columns.map(col => `"${row[col] || ''}"`).join(',')
+    );
+
+    const csv = [headers, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'premier_league_historical_data.csv';
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 // Load Predictions
