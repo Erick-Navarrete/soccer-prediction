@@ -1,0 +1,10 @@
+{
+  "total_predictions": 10,
+  "total_historical": 339,
+  "teams": 20,
+  "accuracy": 90.0,
+  "high_confidence_accuracy": 100.0,
+  "last_updated": "2026-05-01 13:53:57",
+  "top_team": "Arsenal",
+  "insights_count": 4
+}
