@@ -22,7 +22,7 @@
                 <i class="fas fa-futbol"></i>
                 <span>SoccerAI</span>
             </div>
-            <div class="nav-menu">
+            <div class="nav-menu-left">
                 <a href="#predictions" class="nav-link active" data-section="predictions">
                     <i class="fas fa-chart-line"></i> Predictions
                 </a>
@@ -168,6 +168,38 @@
                         <h3>Correct</h3>
                         <p class="stat-value" id="hist-correct">--</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="date-filter-section">
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="date-from">From:</label>
+                        <input type="date" id="date-from" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label for="date-to">To:</label>
+                        <input type="date" id="date-to" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label for="date-group">Group By:</label>
+                        <select id="date-group" class="filter-select">
+                            <option value="none">No Grouping</option>
+                            <option value="day">Day</option>
+                            <option value="week">Week</option>
+                            <option value="month">Month</option>
+                        </select>
+                    </div>
+                    <button class="modern-btn" onclick="applyDateFilter()">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <button class="modern-btn secondary" onclick="clearDateFilter()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+                <div class="filter-info" id="filter-info">
+                    Showing all matches
                 </div>
             </div>
 

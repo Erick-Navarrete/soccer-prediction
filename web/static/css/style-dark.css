@@ -253,6 +253,68 @@ body {
     transform: translateY(0);
 }
 
+/* Date Filter Section - Dark Mode */
+.date-filter-section {
+    background: rgba(30, 30, 50, 0.8);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.filter-controls {
+    gap: 1rem;
+}
+
+.filter-group label {
+    color: #a0a0a0;
+}
+
+.filter-input,
+.filter-select {
+    background: rgba(20, 20, 35, 0.8);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    color: #e0e0e0;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.filter-info {
+    background: rgba(20, 20, 35, 0.8);
+    color: #a0a0a0;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.filter-info i {
+    color: #667eea;
+}
+
+.modern-btn.secondary {
+    background: rgba(20, 20, 35, 0.8);
+    color: #e0e0e0;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.modern-btn.secondary:hover {
+    background: rgba(30, 30, 50, 0.8);
+    border-color: #667eea;
+}
+
+.date-group-header {
+    border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.date-group-header h3 {
+    color: #e0e0e0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.date-group-header .group-stats {
+    color: #a0a0a0;
+}
+
 /* Predictions List */
 .predictions-list {
     display: grid;
@@ -534,6 +596,94 @@ body {
 .card-label {
     font-size: 0.8rem;
     opacity: 0.8;
+}
+
+/* Historical Insights Section - Dark Mode */
+.historical-insights-section {
+    background: rgba(30, 30, 50, 0.8);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.insights-title {
+    color: #e0e0e0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.insights-overview {
+    margin-bottom: 2rem;
+}
+
+.insight-stat {
+    background: rgba(20, 20, 35, 0.8);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.insight-stat:hover {
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    border-color: rgba(102, 126, 234, 0.4);
+}
+
+.insight-stat i {
+    color: #667eea;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.insight-stat .insight-value {
+    color: #e0e0e0;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.insight-stat .insight-label {
+    color: #a0a0a0;
+}
+
+.insights-details {
+    gap: 1.5rem;
+}
+
+.insight-block {
+    background: rgba(20, 20, 35, 0.8);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.insight-block h4 {
+    color: #e0e0e0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.insight-block h4 i {
+    color: #667eea;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.insight-block li {
+    color: #e0e0e0;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.insight-block li i {
+    color: #667eea;
+    text-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+}
+
+.insight-block .rank {
+    color: #667eea;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.insight-block .team-name {
+    color: #e0e0e0;
+}
+
+.insight-block .team-points {
+    color: #4ade80;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+}
+
+.insight-block .team-record {
+    color: #a0a0a0;
 }
 
 /* Loading State */

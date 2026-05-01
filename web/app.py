@@ -621,6 +621,35 @@ def api_insights():
     })
 
 
+@app.route('/api/historical-insights')
+def api_historical_insights():
+    """Get detailed historical data insights API endpoint."""
+    try:
+        insights_path = Path(__file__).parent.parent / "data" / "historical_insights.json"
+
+        if insights_path.exists():
+            with open(insights_path, 'r') as f:
+                insights = json.load(f)
+
+            return jsonify({
+                "success": True,
+                "data": insights,
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Historical insights not found"
+            }), 404
+
+    except Exception as e:
+        print(f"Error loading historical insights: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
 @app.route('/api/status')
 def api_status():
     """Get system status and last updated timestamp."""

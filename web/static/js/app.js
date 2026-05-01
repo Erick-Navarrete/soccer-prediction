@@ -118,7 +118,8 @@ async function loadAllData() {
             loadHistoricalStats(),
             loadTeams(),
             loadPerformance(),
-            loadInsights()
+            loadInsights(),
+            loadHistoricalInsights()
         ]);
 
         // Update performance display with enhanced features
@@ -173,6 +174,21 @@ function renderInsights(insights) {
             </ul>
         </div>
     `).join('');
+}
+
+// Load Historical Insights
+async function loadHistoricalInsights() {
+    try {
+        const response = await fetch(`${API_BASE}/historical-insights`);
+        const result = await response.json();
+
+        if (result.success && result.data) {
+            window.historicalInsights = result.data;
+            console.log('Historical insights loaded:', result.data);
+        }
+    } catch (error) {
+        console.error('Error loading historical insights:', error);
+    }
 }
 
 // Load Predictions
@@ -444,7 +460,73 @@ function renderHistorical() {
         return;
     }
 
-    container.innerHTML = historical.map(pred => `
+    // Sort by date (most recent first)
+    const sortedHistorical = [...historical].sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB - dateA;
+    });
+
+    // Apply filters if set
+    let filteredHistorical = sortedHistorical;
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+
+    if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        filteredHistorical = filteredHistorical.filter(pred => new Date(pred.date) >= fromDate);
+    }
+
+    if (dateTo) {
+        const toDate = new Date(dateTo);
+        filteredHistorical = filteredHistorical.filter(pred => new Date(pred.date) <= toDate);
+    }
+
+    // Update filter info
+    const filterInfo = document.getElementById('filter-info');
+    if (dateFrom || dateTo) {
+        filterInfo.innerHTML = `<i class="fas fa-filter"></i> Showing ${filteredHistorical.length} of ${historical.length} matches`;
+    } else {
+        filterInfo.innerHTML = `<i class="fas fa-list"></i> Showing all ${historical.length} matches`;
+    }
+
+    // Group by date if selected
+    const groupBy = document.getElementById('date-group').value;
+    let groupedData = filteredHistorical;
+
+    if (groupBy !== 'none') {
+        groupedData = groupByDate(filteredHistorical, groupBy);
+    }
+
+    if (Array.isArray(groupedData)) {
+        // No grouping, render directly
+        container.innerHTML = groupedData.map(pred => renderHistoricalCard(pred)).join('');
+    } else {
+        // Grouped data, render with headers
+        let html = '';
+        for (const [groupKey, groupData] of Object.entries(groupedData)) {
+            const correctCount = groupData.filter(p => p.is_correct).length;
+            const totalCount = groupData.length;
+            const accuracy = ((correctCount / totalCount) * 100).toFixed(1);
+
+            html += `
+                <div class="date-group-header">
+                    <h3><i class="fas fa-calendar-alt"></i> ${groupKey}</h3>
+                    <div class="group-stats">
+                        <span><i class="fas fa-futbol"></i> ${totalCount} matches</span>
+                        <span><i class="fas fa-check-circle"></i> ${correctCount} correct</span>
+                        <span><i class="fas fa-percentage"></i> ${accuracy}% accuracy</span>
+                    </div>
+                </div>
+            `;
+            html += groupData.map(pred => renderHistoricalCard(pred)).join('');
+        }
+        container.innerHTML = html;
+    }
+}
+
+function renderHistoricalCard(pred) {
+    return `
         <div class="prediction-card ${pred.is_correct ? 'correct' : 'incorrect'} ${darkMode ? 'dark-mode' : ''}">
             <div class="prediction-header">
                 <span class="match-date">
@@ -505,7 +587,46 @@ function renderHistorical() {
                 Confidence: ${pred.confidence}% | Importance: ${pred.importance}
             </div>
         </div>
-    `).join('');
+    `;
+}
+
+function groupByDate(data, groupBy) {
+    const grouped = {};
+
+    data.forEach(item => {
+        const date = new Date(item.date);
+        let key;
+
+        if (groupBy === 'day') {
+            key = date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        } else if (groupBy === 'week') {
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - date.getDay());
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            key = `Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+        } else if (groupBy === 'month') {
+            key = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        }
+
+        if (!grouped[key]) {
+            grouped[key] = [];
+        }
+        grouped[key].push(item);
+    });
+
+    return grouped;
+}
+
+function applyDateFilter() {
+    renderHistorical();
+}
+
+function clearDateFilter() {
+    document.getElementById('date-from').value = '';
+    document.getElementById('date-to').value = '';
+    document.getElementById('date-group').value = 'none';
+    renderHistorical();
 }
 
 // Render Historical Stats
@@ -928,6 +1049,9 @@ function renderEnhancedPerformance() {
     const performanceGrid = document.querySelector('.performance-grid');
     if (!performanceGrid) return;
 
+    let html = '';
+
+    // Basic performance metrics
     const enhancedCards = [
         createEnhancedPerformanceCard(
             'Accuracy',
@@ -937,18 +1061,18 @@ function renderEnhancedPerformance() {
             '#4ade80'
         ),
         createEnhancedPerformanceCard(
-            'Log Loss',
-            performance.log_loss ? performance.log_loss.toFixed(3) : '--',
-            'Probability calibration',
-            'fa-chart-line',
-            '#667eea'
-        ),
-        createEnhancedPerformanceCard(
             'Total Predictions',
             performance.total_predictions ? performance.total_predictions.toLocaleString() : '--',
             'Matches analyzed',
             'fa-database',
             '#fbbf24'
+        ),
+        createEnhancedPerformanceCard(
+            'High Confidence Accuracy',
+            performance.high_confidence_accuracy ? `${performance.high_confidence_accuracy}%` : '--%',
+            'Predictions with 70%+ confidence',
+            'fa-star',
+            '#667eea'
         ),
         createEnhancedPerformanceCard(
             'Last Updated',
@@ -959,7 +1083,92 @@ function renderEnhancedPerformance() {
         )
     ];
 
-    performanceGrid.innerHTML = enhancedCards.join('');
+    html += enhancedCards.join('');
+
+    // Add historical insights section if available
+    if (window.historicalInsights) {
+        const insights = window.historicalInsights;
+        const overview = insights.overview || {};
+        const teamPerf = insights.team_performance || {};
+        const matchStats = insights.match_statistics || {};
+
+        html += `
+            <div class="historical-insights-section">
+                <h3 class="insights-title">
+                    <i class="fas fa-chart-bar"></i> Historical Data Analysis
+                </h3>
+
+                <div class="insights-overview">
+                    <div class="insight-stat">
+                        <i class="fas fa-futbol"></i>
+                        <div>
+                            <div class="insight-value">${overview.total_matches || 0}</div>
+                            <div class="insight-label">Total Matches</div>
+                        </div>
+                    </div>
+                    <div class="insight-stat">
+                        <i class="fas fa-bullseye"></i>
+                        <div>
+                            <div class="insight-value">${overview.avg_goals_per_match || 0}</div>
+                            <div class="insight-label">Avg Goals/Match</div>
+                        </div>
+                    </div>
+                    <div class="insight-stat">
+                        <i class="fas fa-home"></i>
+                        <div>
+                            <div class="insight-value">${overview.home_win_rate || 0}%</div>
+                            <div class="insight-label">Home Win Rate</div>
+                        </div>
+                    </div>
+                    <div class="insight-stat">
+                        <i class="fas fa-plane"></i>
+                        <div>
+                            <div class="insight-value">${overview.away_win_rate || 0}%</div>
+                            <div class="insight-label">Away Win Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insights-details">
+                    <div class="insight-block">
+                        <h4><i class="fas fa-trophy"></i> Top Teams</h4>
+                        <ul>
+                            ${(teamPerf.top_teams || []).slice(0, 5).map((team, i) => `
+                                <li>
+                                    <span class="rank">${i + 1}.</span>
+                                    <span class="team-name">${team.team}</span>
+                                    <span class="team-points">${team.points} pts</span>
+                                    <span class="team-record">(${team.wins}W-${team.draws}D-${team.losses}L)</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="insight-block">
+                        <h4><i class="fas fa-chart-line"></i> Key Findings</h4>
+                        <ul>
+                            ${(insights.key_findings || []).map(finding => `
+                                <li><i class="fas fa-lightbulb"></i> ${finding}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="insight-block">
+                        <h4><i class="fas fa-chart-pie"></i> Match Statistics</h4>
+                        <ul>
+                            <li><i class="fas fa-home"></i> Avg Home Goals: ${matchStats.avg_home_goals || 0}</li>
+                            <li><i class="fas fa-plane"></i> Avg Away Goals: ${matchStats.avg_away_goals || 0}</li>
+                            <li><i class="fas fa-fire"></i> High Scoring Matches: ${matchStats.high_scoring_matches || 0}</li>
+                            <li><i class="fas fa-shield-alt"></i> Low Scoring Matches: ${matchStats.low_scoring_matches || 0}</li>
+                            <li><i class="fas fa-percentage"></i> Over 2.5 Goals: ${matchStats.over_2_5_percentage || 0}%</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    performanceGrid.innerHTML = html;
 }
 
 // Initialize Enhanced Features
