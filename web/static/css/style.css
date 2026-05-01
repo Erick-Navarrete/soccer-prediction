@@ -1689,6 +1689,7 @@ body {
 
     .mobile-nav-menu {
         width: 280px;
+        left: -280px;
     }
 
     /* Filter Controls Mobile */
@@ -1875,6 +1876,7 @@ body {
 
     .mobile-nav-menu {
         width: 260px;
+        left: -260px;
     }
 
     .mobile-nav-link {

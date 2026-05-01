@@ -687,6 +687,85 @@ def api_historical_data_table():
         }), 500
 
 
+@app.route('/api/historical-data-table/refresh', methods=['POST'])
+def api_historical_data_table_refresh():
+    """Refresh and reload historical data table API endpoint."""
+    try:
+        data_path = Path(__file__).parent.parent / "outputs" / "historical_data" / "premier_league_matches_2526_improved.csv"
+
+        if data_path.exists():
+            df = pd.read_csv(data_path)
+
+            # Convert to list of dictionaries
+            data = df.to_dict('records')
+
+            # Limit to first 1000 records for performance
+            if len(data) > 1000:
+                data = data[:1000]
+
+            return jsonify({
+                "success": True,
+                "data": data,
+                "count": len(data),
+                "total": len(df),
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "message": f"Refreshed {len(data)} records successfully"
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Historical data file not found"
+            }), 404
+
+    except Exception as e:
+        print(f"Error refreshing historical data table: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route('/api/predictions/refresh', methods=['POST'])
+def api_predictions_refresh():
+    """Refresh predictions data API endpoint."""
+    try:
+        # Re-process current week predictions
+        import subprocess
+        import sys
+
+        # Run the processing script
+        result = subprocess.run(
+            [sys.executable, 'data/process_current_week.py'],
+            capture_output=True,
+            text=True,
+            cwd=str(Path(__file__).parent.parent)
+        )
+
+        if result.returncode == 0:
+            # Load the updated predictions
+            predictions = load_current_predictions()
+
+            return jsonify({
+                "success": True,
+                "data": predictions,
+                "count": len(predictions),
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "message": f"Refreshed {len(predictions)} predictions successfully"
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": f"Processing failed: {result.stderr}"
+            }), 500
+
+    except Exception as e:
+        print(f"Error refreshing predictions: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
 @app.route('/api/status')
 def api_status():
     """Get system status and last updated timestamp."""

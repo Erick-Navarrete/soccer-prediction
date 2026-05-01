@@ -23,8 +23,18 @@ function toggleMobileMenu() {
     const menu = document.getElementById('mobile-nav-menu');
     const overlay = document.getElementById('mobile-nav-overlay');
 
-    menu.classList.toggle('active');
-    overlay.classList.toggle('active');
+    console.log('Toggling mobile menu');
+    console.log('Menu element:', menu);
+    console.log('Overlay element:', overlay);
+
+    if (menu && overlay) {
+        menu.classList.toggle('active');
+        overlay.classList.toggle('active');
+        console.log('Menu classes:', menu.className);
+        console.log('Overlay classes:', overlay.className);
+    } else {
+        console.error('Menu or overlay element not found');
+    }
 }
 
 // Tab Navigation
@@ -363,6 +373,43 @@ function exportTable() {
     URL.revokeObjectURL(url);
 }
 
+// Refresh Historical Data
+async function refreshHistoricalData() {
+    const container = document.getElementById('data-table-container');
+    container.innerHTML = `
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Refreshing historical data...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`${API_BASE}/historical-data-table/refresh`, {
+            method: 'POST'
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            historicalData = result.data;
+            renderHistoricalDataTable();
+            alert('Historical data refreshed successfully!');
+        } else {
+            throw new Error(result.error || 'Failed to refresh data');
+        }
+    } catch (error) {
+        console.error('Error refreshing historical data:', error);
+        container.innerHTML = `
+            <div class="loading">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Failed to refresh data: ${error.message}</p>
+                <button class="modern-btn" onclick="loadHistoricalDataTable()" style="margin-top: 1rem;">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+            </div>
+        `;
+    }
+}
+
 // Load Predictions
 async function loadPredictions() {
     try {
@@ -377,6 +424,44 @@ async function loadPredictions() {
     } catch (error) {
         console.error('Error loading predictions:', error);
         showErrorMessage('predictions-list', 'Failed to load predictions');
+    }
+}
+
+// Refresh Predictions
+async function refreshPredictions() {
+    const container = document.getElementById('predictions-list');
+    container.innerHTML = `
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Refreshing predictions...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`${API_BASE}/predictions/refresh`, {
+            method: 'POST'
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            predictions = result.data;
+            renderPredictions();
+            updateHeaderStats(result.count);
+            alert('Predictions refreshed successfully!');
+        } else {
+            throw new Error(result.error || 'Failed to refresh predictions');
+        }
+    } catch (error) {
+        console.error('Error refreshing predictions:', error);
+        container.innerHTML = `
+            <div class="loading">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Failed to refresh predictions: ${error.message}</p>
+                <button class="modern-btn" onclick="loadPredictions()" style="margin-top: 1rem;">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+            </div>
+        `;
     }
 }
 
