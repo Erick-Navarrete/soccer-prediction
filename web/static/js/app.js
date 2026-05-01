@@ -465,6 +465,41 @@ async function refreshPredictions() {
     }
 }
 
+// Update from API
+async function updateFromAPI() {
+    const btn = document.querySelector('.nav-update-btn');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    btn.disabled = true;
+
+    try {
+        // Refresh all data
+        await Promise.all([
+            loadPredictions(),
+            loadHistorical(),
+            loadHistoricalStats(),
+            loadTeams(),
+            loadPerformance(),
+            loadInsights(),
+            loadHistoricalInsights(),
+            loadHistoricalDataTable()
+        ]);
+
+        btn.innerHTML = '<i class="fas fa-check"></i> Updated!';
+        setTimeout(() => {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }, 2000);
+    } catch (error) {
+        console.error('Error updating from API:', error);
+        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+        setTimeout(() => {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }, 2000);
+    }
+}
+
 // Load Teams
 async function loadTeams() {
     try {

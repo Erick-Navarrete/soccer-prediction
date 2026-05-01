@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Hamburger Menu Button -->
-    <button class="hamburger-menu" id="hamburger-menu" onclick="toggleMobileMenu()">
+    <!-- Hamburger Menu Button (Hidden) -->
+    <button class="hamburger-menu hidden" id="hamburger-menu" onclick="toggleMobileMenu()">
         <i class="fas fa-bars"></i>
     </button>
 
@@ -76,49 +76,20 @@
                     <span class="stat-value" id="nav-accuracy">--%</span>
                     <span class="stat-label">Accuracy</span>
                 </div>
+                <button class="modern-btn nav-update-btn" onclick="updateFromAPI()" title="Update from API">
+                    <i class="fas fa-cloud-download-alt"></i> Update
+                </button>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- Hero Section (Simplified) -->
     <section class="hero-section">
         <div class="hero-content">
             <div class="hero-text">
                 <h1 class="hero-title">
-                    <span class="gradient-text">AI-Powered</span>
-                    <br>Soccer Predictions
+                    <span class="gradient-text">SoccerAI</span>
                 </h1>
-                <p class="hero-subtitle">
-                    Advanced machine learning algorithms delivering accurate football match predictions with real-time analytics
-                </p>
-                <div class="hero-stats">
-                    <div class="hero-stat">
-                        <div class="stat-number" id="hero-matches">--</div>
-                        <div class="stat-text">Matches</div>
-                    </div>
-                    <div class="hero-stat">
-                        <div class="stat-number" id="hero-accuracy">--%</div>
-                        <div class="stat-text">Accuracy</div>
-                    </div>
-                    <div class="hero-stat">
-                        <div class="stat-number" id="hero-teams">--</div>
-                        <div class="stat-text">Teams</div>
-                    </div>
-                </div>
-            </div>
-            <div class="hero-visual">
-                <div class="floating-card">
-                    <i class="fas fa-brain"></i>
-                    <span>ML Model</span>
-                </div>
-                <div class="floating-card">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Analytics</span>
-                </div>
-                <div class="floating-card">
-                    <i class="fas fa-bolt"></i>
-                    <span>Real-time</span>
-                </div>
             </div>
         </div>
     </section>
