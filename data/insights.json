@@ -1,37 +1,11 @@
 [
   {
-    "type": "top_teams",
-    "title": "Top 3 Teams",
+    "type": "current_week",
+    "title": "Current Week Predictions",
     "content": [
-      "1. Arsenal (73 pts, 38 GD, 64.7% win rate)",
-      "2. Man City (70 pts, 37 GD, 63.6% win rate)",
-      "3. Man United (61 pts, 14 GD, 50.0% win rate)"
-    ]
-  },
-  {
-    "type": "relegation_battle",
-    "title": "Relegation Battle",
-    "content": [
-      "18. Tottenham (34 pts, 23.5% win rate)",
-      "19. Burnley (20 pts, 11.8% win rate)",
-      "20. Wolves (17 pts, 8.8% win rate)"
-    ]
-  },
-  {
-    "type": "form_guide",
-    "title": "Teams in Good Form",
-    "content": [
-      "Arsenal: WLLWW (73 pts)",
-      "Man City: WWWDD (70 pts)",
-      "Man United: WWLDW (61 pts)"
-    ]
-  },
-  {
-    "type": "high_confidence",
-    "title": "High Confidence Predictions",
-    "content": [
-      "Total: 6 matches",
-      "Accuracy: 6/6"
+      "Total matches: 10",
+      "High confidence: 0 matches",
+      "Average confidence: 47.79%"
     ]
   }
 ]

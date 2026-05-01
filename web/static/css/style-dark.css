@@ -644,9 +644,9 @@ body {
 /* Dark Mode Toggle */
 .dark-mode-toggle {
     position: fixed;
-    top: 20px;
+    top: 80px;
     right: 20px;
-    z-index: 1000;
+    z-index: 1001;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
@@ -665,6 +665,10 @@ body {
 .dark-mode-toggle:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.dark-mode-toggle:active {
+    transform: scale(0.95);
 }
 
 /* Responsive Design */
@@ -714,11 +718,31 @@ body {
     }
 
     .dark-mode-toggle {
-        top: 10px;
-        right: 10px;
-        width: 40px;
-        height: 40px;
+        top: auto;
+        bottom: 1rem;
+        right: 1rem;
+        width: 45px;
+        height: 45px;
         font-size: 1.2rem;
+    }
+
+    .prediction-card,
+    .team-card,
+    .stat-card {
+        padding: 1.25rem;
+    }
+
+    .team-name {
+        font-size: 1rem;
+    }
+
+    .prediction-value {
+        font-size: 1.25rem;
+    }
+
+    .modal-content {
+        margin: 1rem;
+        max-height: 85vh;
     }
 }
 
@@ -741,6 +765,45 @@ body {
 
     .prediction-value {
         font-size: 1.2rem;
+    }
+
+    .dark-mode-toggle {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        bottom: 0.75rem;
+        right: 0.75rem;
+    }
+
+    .prediction-card,
+    .team-card,
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .modal-content {
+        margin: 0.5rem;
+        padding: 1rem;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+
+    .modal-header h3 {
+        font-size: 1.25rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .prob-value {
+        font-size: 1.1rem;
+    }
+
+    .card-value {
+        font-size: 1.5rem;
     }
 }
 
