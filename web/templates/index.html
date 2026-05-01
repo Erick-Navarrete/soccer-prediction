@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soccer Predictions - AI Powered</title>
+    <title>Soccer Predictions - AI Powered Football Analytics</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style-dark.css') }}" id="dark-mode-stylesheet" disabled>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Dark Mode Toggle -->
@@ -14,189 +15,224 @@
         <i class="fas fa-moon"></i>
     </button>
 
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-futbol"></i>
-                    <h1>Soccer Predictions</h1>
+    <!-- Modern Navigation -->
+    <nav class="modern-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-futbol"></i>
+                <span>SoccerAI</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#predictions" class="nav-link active" data-section="predictions">
+                    <i class="fas fa-chart-line"></i> Predictions
+                </a>
+                <a href="#historical" class="nav-link" data-section="historical">
+                    <i class="fas fa-history"></i> Historical
+                </a>
+                <a href="#teams" class="nav-link" data-section="teams">
+                    <i class="fas fa-trophy"></i> Standings
+                </a>
+                <a href="#performance" class="nav-link" data-section="performance">
+                    <i class="fas fa-chart-bar"></i> Analytics
+                </a>
+            </div>
+            <div class="nav-stats">
+                <div class="stat-badge">
+                    <span class="stat-value" id="nav-accuracy">--%</span>
+                    <span class="stat-label">Accuracy</span>
                 </div>
-                <div class="header-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Accuracy</span>
-                        <span class="stat-value" id="accuracy">--%</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    <span class="gradient-text">AI-Powered</span>
+                    <br>Soccer Predictions
+                </h1>
+                <p class="hero-subtitle">
+                    Advanced machine learning algorithms delivering accurate football match predictions with real-time analytics
+                </p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="stat-number" id="hero-matches">--</div>
+                        <div class="stat-text">Matches</div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Predictions</span>
-                        <span class="stat-value" id="total-predictions">--</span>
+                    <div class="hero-stat">
+                        <div class="stat-number" id="hero-accuracy">--%</div>
+                        <div class="stat-text">Accuracy</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="stat-number" id="hero-teams">--</div>
+                        <div class="stat-text">Teams</div>
                     </div>
                 </div>
             </div>
-        </header>
-
-        <!-- Navigation Tabs -->
-        <nav class="tabs">
-            <button class="tab active" data-tab="predictions">
-                <i class="fas fa-chart-line"></i>
-                Predictions
-            </button>
-            <button class="tab" data-tab="historical">
-                <i class="fas fa-history"></i>
-                Historical
-            </button>
-            <button class="tab" data-tab="teams">
-                <i class="fas fa-trophy"></i>
-                Top Teams
-            </button>
-            <button class="tab" data-tab="performance">
-                <i class="fas fa-chart-bar"></i>
-                Performance
-            </button>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Predictions Tab -->
-            <div class="tab-content active" id="predictions-tab">
-                <div class="section-header">
-                    <h2>Upcoming Matches</h2>
-                    <button class="btn-refresh" onclick="refreshPredictions()">
-                        <i class="fas fa-sync-alt"></i>
-                        Refresh
-                    </button>
+            <div class="hero-visual">
+                <div class="floating-card">
+                    <i class="fas fa-brain"></i>
+                    <span>ML Model</span>
                 </div>
+                <div class="floating-card">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </div>
+                <div class="floating-card">
+                    <i class="fas fa-bolt"></i>
+                    <span>Real-time</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                <div class="predictions-list" id="predictions-list">
-                    <div class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading predictions...</p>
+    <!-- Insights Section -->
+    <section class="insights-section" id="insights-container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-lightbulb"></i>
+                Season Insights
+            </h2>
+            <p class="section-subtitle">AI-powered analysis and key statistics</p>
+        </div>
+        <div class="insights-grid" id="insights-grid">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading insights...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Predictions Section -->
+        <section class="content-section active" id="predictions-section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Match Predictions</h2>
+                    <p class="section-subtitle">Current season AI-powered predictions</p>
+                </div>
+                <button class="modern-btn" onclick="refreshPredictions()">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <div class="predictions-grid" id="predictions-list">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading predictions...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Historical Section -->
+        <section class="content-section" id="historical-section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Historical Accuracy</h2>
+                    <p class="section-subtitle">Track prediction performance over time</p>
+                </div>
+                <button class="modern-btn" onclick="updateHistorical()">
+                    <i class="fas fa-sync-alt"></i>
+                    Update
+                </button>
+            </div>
+
+            <div class="historical-stats" id="historical-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Accuracy</h3>
+                        <p class="stat-value" id="hist-accuracy">--%</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total</h3>
+                        <p class="stat-value" id="hist-total">--</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Correct</h3>
+                        <p class="stat-value" id="hist-correct">--</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Teams Tab -->
-            <div class="tab-content" id="teams-tab">
-                <div class="section-header">
-                    <h2>Top Teams by ELO Rating</h2>
+            <div class="historical-list" id="historical-list">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading historical data...</p>
                 </div>
+            </div>
+        </section>
 
-                <div class="teams-list" id="teams-list">
-                    <div class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading teams...</p>
-                    </div>
+        <!-- Teams Section -->
+        <section class="content-section" id="teams-section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">League Standings</h2>
+                    <p class="section-subtitle">Current Premier League table</p>
                 </div>
             </div>
 
-            <!-- Performance Tab -->
-            <div class="tab-content" id="performance-tab">
-                <div class="section-header">
-                    <h2>Model Performance</h2>
+            <div class="teams-grid" id="teams-list">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading standings...</p>
                 </div>
+            </div>
+        </section>
 
-                <div class="performance-grid">
-                    <div class="performance-card">
-                        <div class="card-icon">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Accuracy</h3>
-                            <p class="card-value" id="perf-accuracy">--%</p>
-                            <p class="card-label">Overall prediction accuracy</p>
-                        </div>
-                    </div>
-
-                    <div class="performance-card">
-                        <div class="card-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Log Loss</h3>
-                            <p class="card-value" id="perf-logloss">--</p>
-                            <p class="card-label">Probability calibration</p>
-                        </div>
-                    </div>
-
-                    <div class="performance-card">
-                        <div class="card-icon">
-                            <i class="fas fa-database"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Total Predictions</h3>
-                            <p class="card-value" id="perf-total">--</p>
-                            <p class="card-label">Matches analyzed</p>
-                        </div>
-                    </div>
-
-                    <div class="performance-card">
-                        <div class="card-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Last Updated</h3>
-                            <p class="card-value" id="perf-updated">--</p>
-                            <p class="card-label">Model training date</p>
-                        </div>
-                    </div>
+        <!-- Performance Section -->
+        <section class="content-section" id="performance-section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Performance Analytics</h2>
+                    <p class="section-subtitle">Model performance metrics and insights</p>
                 </div>
             </div>
 
-            <!-- Historical Tab -->
-            <div class="tab-content" id="historical-tab">
-                <div class="section-header">
-                    <h2>Past Predictions & Results</h2>
-                    <button class="btn-refresh" onclick="updateHistorical()">
-                        <i class="fas fa-sync-alt"></i>
-                        Update
-                    </button>
-                </div>
-
-                <div class="historical-stats" id="historical-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Accuracy</h3>
-                            <p class="stat-value" id="hist-accuracy">--%</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-database"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Total Predictions</h3>
-                            <p class="stat-value" id="hist-total">--</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-trophy"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Correct</h3>
-                            <p class="stat-value" id="hist-correct">--</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="historical-list" id="historical-list">
-                    <div class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading historical predictions...</p>
-                    </div>
+            <div class="performance-grid" id="performance-grid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading analytics...</p>
                 </div>
             </div>
-        </main>
+        </section>
+    </main>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <p>Powered by AI & Machine Learning</p>
-            <p class="last-updated">Last updated: <span id="last-updated">--</span></p>
-        </footer>
-    </div>
+    <!-- Footer -->
+    <footer class="modern-footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <i class="fas fa-futbol"></i>
+                <span>SoccerAI</span>
+            </div>
+            <div class="footer-links">
+                <a href="#predictions">Predictions</a>
+                <a href="#historical">Historical</a>
+                <a href="#teams">Standings</a>
+                <a href="#performance">Analytics</a>
+            </div>
+            <div class="footer-info">
+                <p>Last updated: <span id="last-updated">--</span></p>
+                <p>Powered by AI & Machine Learning</p>
+            </div>
+        </div>
+    </footer>
 
     <!-- Match Detail Modal -->
     <div class="modal" id="match-modal">

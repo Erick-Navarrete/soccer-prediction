@@ -19,33 +19,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Tab Navigation
 function initializeTabs() {
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const tabName = this.getAttribute('data-tab');
-            switchTab(tabName);
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const section = this.getAttribute('data-section');
+            switchSection(section);
         });
     });
 }
 
-function switchTab(tabName) {
-    // Update tab buttons
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-        if (tab.getAttribute('data-tab') === tabName) {
-            tab.classList.add('active');
+function switchSection(sectionName) {
+    // Update nav links
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('data-section') === sectionName) {
+            link.classList.add('active');
         }
     });
 
-    // Update tab content
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-        if (content.id === `${tabName}-tab`) {
-            content.classList.add('active');
+    // Update sections
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+        if (section.id === `${sectionName}-section`) {
+            section.classList.add('active');
         }
     });
 
-    currentTab = tabName;
+    currentTab = sectionName;
 }
 
 // Dark Mode Functions
@@ -147,50 +148,31 @@ async function loadInsights() {
 
 // Render Insights
 function renderInsights(insights) {
-    // Create insights section if it doesn't exist
-    let insightsContainer = document.getElementById('insights-container');
-    if (!insightsContainer) {
-        // Add insights section after the tabs
-        const tabsContainer = document.querySelector('.tabs');
-        if (tabsContainer) {
-            insightsContainer = document.createElement('div');
-            insightsContainer.id = 'insights-container';
-            insightsContainer.className = 'insights-section';
-            insightsContainer.style.cssText = `
-                background: ${darkMode ? 'rgba(30, 30, 50, 0.8)' : '#f8f9fa'};
-                padding: 20px;
-                margin: 20px 30px;
-                border-radius: 10px;
-                border: 1px solid ${darkMode ? 'rgba(102, 126, 234, 0.2)' : '#e9ecef'};
-            `;
-            tabsContainer.parentNode.insertBefore(insightsContainer, tabsContainer.nextSibling);
-        }
-    }
+    const container = document.getElementById('insights-grid');
 
-    if (insightsContainer && insights.length > 0) {
-        insightsContainer.innerHTML = `
-            <h3 style="margin-bottom: 15px; color: ${darkMode ? '#e0e0e0' : '#333'};">
-                <i class="fas fa-lightbulb" style="color: #fbbf24;"></i> Season Insights
-            </h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                ${insights.map(insight => `
-                    <div style="background: ${darkMode ? 'rgba(20, 20, 35, 0.8)' : 'white'}; padding: 15px; border-radius: 8px; border: 1px solid ${darkMode ? 'rgba(102, 126, 234, 0.2)' : '#e9ecef'};">
-                        <h4 style="margin-bottom: 10px; color: ${darkMode ? '#e0e0e0' : '#333'}; font-size: 1rem;">
-                            <i class="fas fa-chart-pie" style="color: #667eea; margin-right: 5px;"></i>
-                            ${insight.title}
-                        </h4>
-                        <ul style="list-style: none; padding: 0; margin: 0;">
-                            ${insight.content.map(item => `
-                                <li style="padding: 5px 0; color: ${darkMode ? '#a0a0a0' : '#6c757d'}; font-size: 0.9rem; border-bottom: 1px solid ${darkMode ? 'rgba(102, 126, 234, 0.1)' : '#e9ecef'};">
-                                    ${item}
-                                </li>
-                            `).join('')}
-                        </ul>
-                    </div>
-                `).join('')}
+    if (!insights || insights.length === 0) {
+        container.innerHTML = `
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading insights...</p>
             </div>
         `;
+        return;
     }
+
+    container.innerHTML = insights.map(insight => `
+        <div class="insight-card ${darkMode ? 'dark-mode' : ''}">
+            <h4>
+                <i class="fas fa-chart-pie"></i>
+                ${insight.title}
+            </h4>
+            <ul>
+                ${insight.content.map(item => `
+                    <li>${item}</li>
+                `).join('')}
+            </ul>
+        </div>
+    `).join('');
 }
 
 // Load Predictions
@@ -312,9 +294,7 @@ function renderPredictions() {
                 <div class="confidence-bar">
                     <div class="confidence-fill" style="width: ${pred.confidence}%; background: ${getConfidenceColor(pred.confidence)}"></div>
                 </div>
-                <div style="margin-top: 10px; font-size: 0.9rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'};">
-                    Confidence: ${pred.confidence}%
-                </div>
+                <div class="confidence-text">Confidence: ${pred.confidence}%</div>
             </div>
 
             <div class="probabilities">
@@ -333,9 +313,9 @@ function renderPredictions() {
             </div>
 
             ${pred.actual_result ? `
-                <div style="margin-top: 15px; padding: 10px; background: ${darkMode ? 'rgba(20, 20, 35, 0.8)' : '#f8f9fa'}; border-radius: 8px; border: 1px solid ${pred.is_correct ? 'rgba(74, 222, 128, 0.3)' : 'rgba(248, 113, 113, 0.3)'};">
-                    <div style="font-size: 0.9rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'}; margin-bottom: 5px;">Actual Result</div>
-                    <div style="font-size: 1.1rem; font-weight: 600; color: ${pred.is_correct ? '#4ade80' : '#f87171'};">
+                <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-lg); border-left: 4px solid ${pred.is_correct ? 'var(--success-color)' : 'var(--danger-color)'};">
+                    <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Actual Result</div>
+                    <div style="font-size: 1.125rem; font-weight: 600; color: ${pred.is_correct ? 'var(--success-color)' : 'var(--danger-color)'};">
                         ${pred.is_correct ? '✓' : '✗'} ${pred.actual_result}
                     </div>
                 </div>
@@ -360,26 +340,25 @@ function renderTeams() {
 
     container.innerHTML = teams.map(team => `
         <div class="team-card ${darkMode ? 'dark-mode' : ''}">
-            <div class="team-rank" style="color: ${getRankColor(team.rank)}">#${team.rank}</div>
+            <div class="team-rank" style="background: ${getRankGradient(team.rank)}">#${team.rank}</div>
             <div class="team-info">
                 <div class="team-name-display">${team.team}</div>
-                <div style="font-size: 0.85rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'}; margin-top: 5px;">
-                    ${team.wins}W ${team.draws}D ${team.losses}L | ${team.points} pts
-                </div>
-                ${team.form ? `
-                    <div style="font-size: 0.8rem; margin-top: 5px;">
-                        Form: <span style="font-weight: 600;">${team.form}</span>
-                    </div>
-                ` : ''}
+                <div class="team-stats">${team.wins}W ${team.draws}D ${team.losses}L | ${team.points} pts</div>
+                ${team.form ? `<div class="team-form">Form: ${team.form}</div>` : ''}
             </div>
             <div style="text-align: right;">
-                <div class="team-elo-display" style="color: ${getRankColor(team.rank)}">${team.elo}</div>
-                <div style="font-size: 0.8rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'}; margin-top: 5px;">
-                    ${team.goal_difference > 0 ? '+' : ''}${team.goal_difference} GD
-                </div>
+                <div class="team-elo-display">${team.elo}</div>
+                <div class="team-gd">${team.goal_difference > 0 ? '+' : ''}${team.goal_difference} GD</div>
             </div>
         </div>
     `).join('');
+}
+
+function getRankGradient(rank) {
+    if (rank <= 4) return 'linear-gradient(135deg, #10b981, #059669)';
+    if (rank <= 6) return 'linear-gradient(135deg, #6366f1, #4f46e5)';
+    if (rank >= 18) return 'linear-gradient(135deg, #ef4444, #dc2626)';
+    return 'linear-gradient(135deg, #6366f1, #8b5cf6)';
 }
 
 // Render Performance
@@ -406,28 +385,28 @@ function renderPerformance() {
                 `${performance.accuracy}%`,
                 'Overall prediction accuracy',
                 'fa-bullseye',
-                '#4ade80'
+                '#10b981'
             ),
             createEnhancedPerformanceCard(
                 'Total Matches',
                 performance.total_matches,
                 'Matches analyzed this season',
                 'fa-database',
-                '#667eea'
+                '#6366f1'
             ),
             createEnhancedPerformanceCard(
                 'High Confidence',
                 `${performance.high_confidence_accuracy}%`,
                 'Accuracy on predictions >70% confidence',
                 'fa-chart-line',
-                '#fbbf24'
+                '#f59e0b'
             ),
             createEnhancedPerformanceCard(
                 'Best Team',
                 performance.best_predicting_team || 'N/A',
                 `Highest prediction accuracy: ${performance.best_team_accuracy || 0}%`,
                 'fa-trophy',
-                '#f87171'
+                '#ec4899'
             )
         ];
 
@@ -438,12 +417,16 @@ function renderPerformance() {
 // Update Header Stats
 function updateHeaderStats(count) {
     if (performance.accuracy) {
-        document.getElementById('accuracy').textContent = `${performance.accuracy}%`;
+        document.getElementById('nav-accuracy').textContent = `${performance.accuracy}%`;
+        document.getElementById('hero-accuracy').textContent = `${performance.accuracy}%`;
     }
     if (performance.total_matches) {
-        document.getElementById('total-predictions').textContent = performance.total_matches;
+        document.getElementById('hero-matches').textContent = performance.total_matches;
     } else {
-        document.getElementById('total-predictions').textContent = count;
+        document.getElementById('hero-matches').textContent = count;
+    }
+    if (teams.length > 0) {
+        document.getElementById('hero-teams').textContent = teams.length;
     }
 }
 
@@ -487,14 +470,18 @@ function renderHistorical() {
 
             <div class="prediction-result">
                 <div class="prediction-label">Prediction vs Actual</div>
-                <div class="prediction-comparison">
-                    <div class="comparison-item">
-                        <span class="comparison-label">Predicted:</span>
-                        <span class="comparison-value prediction">${getPredictionIcon(pred.prediction)} ${pred.prediction}</span>
+                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Predicted</div>
+                        <div style="font-size: 1.125rem; font-weight: 600; color: var(--primary-color);">
+                            ${getPredictionIcon(pred.prediction)} ${pred.prediction}
+                        </div>
                     </div>
-                    <div class="comparison-item">
-                        <span class="comparison-label">Actual:</span>
-                        <span class="comparison-value actual">${getPredictionIcon(pred.actual)} ${pred.actual}</span>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">Actual</div>
+                        <div style="font-size: 1.125rem; font-weight: 600; color: ${pred.is_correct ? 'var(--success-color)' : 'var(--danger-color)'};">
+                            ${getPredictionIcon(pred.actual)} ${pred.actual}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -514,7 +501,7 @@ function renderHistorical() {
                 </div>
             </div>
 
-            <div style="margin-top: 10px; font-size: 0.85rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'};">
+            <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
                 Confidence: ${pred.confidence}% | Importance: ${pred.importance}
             </div>
         </div>
