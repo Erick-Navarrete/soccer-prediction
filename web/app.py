@@ -211,6 +211,74 @@ def update_historical_predictions():
         return False
 
 
+def load_current_predictions():
+    """Load current season predictions from data file."""
+    try:
+        predictions_path = Path(__file__).parent.parent / "data" / "predictions.json"
+
+        if predictions_path.exists():
+            with open(predictions_path, 'r') as f:
+                return json.load(f)
+        else:
+            print("No current predictions found")
+            return []
+
+    except Exception as e:
+        print(f"Error loading current predictions: {e}")
+        return []
+
+
+def load_team_stats():
+    """Load team statistics from data file."""
+    try:
+        stats_path = Path(__file__).parent.parent / "data" / "team_stats.json"
+
+        if stats_path.exists():
+            with open(stats_path, 'r') as f:
+                return json.load(f)
+        else:
+            print("No team statistics found")
+            return []
+
+    except Exception as e:
+        print(f"Error loading team statistics: {e}")
+        return []
+
+
+def load_performance_data():
+    """Load performance metrics from data file."""
+    try:
+        perf_path = Path(__file__).parent.parent / "data" / "performance.json"
+
+        if perf_path.exists():
+            with open(perf_path, 'r') as f:
+                return json.load(f)
+        else:
+            print("No performance data found")
+            return {}
+
+    except Exception as e:
+        print(f"Error loading performance data: {e}")
+        return {}
+
+
+def load_insights():
+    """Load insights from data file."""
+    try:
+        insights_path = Path(__file__).parent.parent / "data" / "insights.json"
+
+        if insights_path.exists():
+            with open(insights_path, 'r') as f:
+                return json.load(f)
+        else:
+            print("No insights found")
+            return []
+
+    except Exception as e:
+        print(f"Error loading insights: {e}")
+        return []
+
+
 def generate_predictions():
     """Generate predictions for upcoming matches."""
     if model is None or scaler is None or latest_data is None:
@@ -336,33 +404,81 @@ def index():
 @app.route('/api/predictions')
 def api_predictions():
     """Get predictions API endpoint."""
-    predictions = generate_predictions()
-    return jsonify({
-        "success": True,
-        "data": predictions,
-        "count": len(predictions),
-        "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    })
+    # Load current season predictions
+    current_predictions = load_current_predictions()
+
+    if current_predictions:
+        return jsonify({
+            "success": True,
+            "data": current_predictions,
+            "count": len(current_predictions),
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+    else:
+        # Fall back to generated predictions
+        predictions = generate_predictions()
+        return jsonify({
+            "success": True,
+            "data": predictions,
+            "count": len(predictions),
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
 
 
 @app.route('/api/performance')
 def api_performance():
     """Get performance metrics API endpoint."""
-    performance = get_historical_performance()
-    return jsonify({
-        "success": True,
-        "data": performance
-    })
+    # Load current performance data
+    performance_data = load_performance_data()
+
+    if performance_data:
+        return jsonify({
+            "success": True,
+            "data": performance_data
+        })
+    else:
+        # Fall back to historical performance
+        performance = get_historical_performance()
+        return jsonify({
+            "success": True,
+            "data": performance
+        })
 
 
 @app.route('/api/teams')
 def api_teams():
     """Get top teams API endpoint."""
-    teams = get_top_teams()
-    return jsonify({
-        "success": True,
-        "data": teams
-    })
+    # Load current team statistics
+    team_stats = load_team_stats()
+
+    if team_stats:
+        # Format for display
+        formatted_teams = [
+            {
+                "rank": team['position'],
+                "team": team['team'],
+                "elo": team['elo'],
+                "points": team['points'],
+                "wins": team['wins'],
+                "draws": team['draws'],
+                "losses": team['losses'],
+                "goal_difference": team['goal_difference'],
+                "form": team['form_string'],
+                "win_rate": team['win_rate']
+            }
+            for team in team_stats[:10]  # Top 10 teams
+        ]
+        return jsonify({
+            "success": True,
+            "data": formatted_teams
+        })
+    else:
+        # Fall back to ELO-based teams
+        teams = get_top_teams()
+        return jsonify({
+            "success": True,
+            "data": teams
+        })
 
 
 @app.route('/api/refresh')
@@ -397,12 +513,32 @@ def api_match_detail(match_id):
 @app.route('/api/historical')
 def api_historical():
     """Get historical predictions API endpoint."""
-    return jsonify({
-        "success": True,
-        "data": historical_predictions,
-        "count": len(historical_predictions),
-        "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    })
+    # Load current historical data
+    historical_data = []
+
+    try:
+        historical_path = Path(__file__).parent.parent / "data" / "historical.json"
+        if historical_path.exists():
+            with open(historical_path, 'r') as f:
+                historical_data = json.load(f)
+    except Exception as e:
+        print(f"Error loading historical data: {e}")
+
+    if historical_data:
+        return jsonify({
+            "success": True,
+            "data": historical_data,
+            "count": len(historical_data),
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+    else:
+        # Fall back to global historical predictions
+        return jsonify({
+            "success": True,
+            "data": historical_predictions,
+            "count": len(historical_predictions),
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
 
 
 @app.route('/api/historical/update')
@@ -421,38 +557,67 @@ def api_historical_update():
 @app.route('/api/historical/stats')
 def api_historical_stats():
     """Get historical prediction statistics."""
-    if not historical_predictions:
+    # Load current performance data for stats
+    performance_data = load_performance_data()
+
+    if performance_data:
         return jsonify({
             "success": True,
             "data": {
-                "total": 0,
-                "correct": 0,
-                "accuracy": 0,
-                "home_wins": 0,
-                "away_wins": 0,
-                "draws": 0
+                "total": performance_data.get('total_matches', 0),
+                "correct": performance_data.get('correct_predictions', 0),
+                "accuracy": performance_data.get('accuracy', 0),
+                "home_wins": performance_data.get('home_wins', 0),
+                "away_wins": performance_data.get('away_wins', 0),
+                "draws": performance_data.get('draws', 0)
+            }
+        })
+    else:
+        # Fall back to historical predictions
+        if not historical_predictions:
+            return jsonify({
+                "success": True,
+                "data": {
+                    "total": 0,
+                    "correct": 0,
+                    "accuracy": 0,
+                    "home_wins": 0,
+                    "away_wins": 0,
+                    "draws": 0
+                }
+            })
+
+        total = len(historical_predictions)
+        correct = sum(1 for pred in historical_predictions if pred.get("is_correct", False))
+        accuracy = (correct / total * 100) if total > 0 else 0
+
+        # Count result types
+        home_wins = sum(1 for pred in historical_predictions if pred.get("actual") == "Home Win")
+        away_wins = sum(1 for pred in historical_predictions if pred.get("actual") == "Away Win")
+        draws = sum(1 for pred in historical_predictions if pred.get("actual") == "Draw")
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "total": total,
+                "correct": correct,
+                "accuracy": round(accuracy, 1),
+                "home_wins": home_wins,
+                "away_wins": away_wins,
+                "draws": draws
             }
         })
 
-    total = len(historical_predictions)
-    correct = sum(1 for pred in historical_predictions if pred.get("is_correct", False))
-    accuracy = (correct / total * 100) if total > 0 else 0
 
-    # Count result types
-    home_wins = sum(1 for pred in historical_predictions if pred.get("actual") == "Home Win")
-    away_wins = sum(1 for pred in historical_predictions if pred.get("actual") == "Away Win")
-    draws = sum(1 for pred in historical_predictions if pred.get("actual") == "Draw")
+@app.route('/api/insights')
+def api_insights():
+    """Get insights and analysis API endpoint."""
+    insights = load_insights()
 
     return jsonify({
         "success": True,
-        "data": {
-            "total": total,
-            "correct": correct,
-            "accuracy": round(accuracy, 1),
-            "home_wins": home_wins,
-            "away_wins": away_wins,
-            "draws": draws
-        }
+        "data": insights,
+        "count": len(insights)
     })
 
 

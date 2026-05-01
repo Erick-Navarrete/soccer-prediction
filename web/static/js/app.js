@@ -110,24 +110,14 @@ function disableDarkMode() {
 // Load All Data
 async function loadAllData() {
     try {
-        // Try enhanced data first
-        const enhancedSuccess = await Promise.all([
-            loadEnhancedPremierLeagueData(),
-            loadEnhancedTeamStats()
-        ]);
-
-        // If enhanced data failed, fall back to regular data
-        if (!enhancedSuccess[0]) {
-            await loadPredictions();
-        }
-        if (!enhancedSuccess[1]) {
-            await loadTeams();
-        }
-
+        // Load current season data
         await Promise.all([
+            loadPredictions(),
             loadHistorical(),
             loadHistoricalStats(),
-            loadPerformance()
+            loadTeams(),
+            loadPerformance(),
+            loadInsights()
         ]);
 
         // Update performance display with enhanced features
@@ -138,6 +128,68 @@ async function loadAllData() {
         updateLastUpdated();
     } catch (error) {
         console.error('Error loading data:', error);
+    }
+}
+
+// Load Insights
+async function loadInsights() {
+    try {
+        const response = await fetch(`${API_BASE}/insights`);
+        const result = await response.json();
+
+        if (result.success && result.data) {
+            renderInsights(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading insights:', error);
+    }
+}
+
+// Render Insights
+function renderInsights(insights) {
+    // Create insights section if it doesn't exist
+    let insightsContainer = document.getElementById('insights-container');
+    if (!insightsContainer) {
+        // Add insights section after the tabs
+        const tabsContainer = document.querySelector('.tabs');
+        if (tabsContainer) {
+            insightsContainer = document.createElement('div');
+            insightsContainer.id = 'insights-container';
+            insightsContainer.className = 'insights-section';
+            insightsContainer.style.cssText = `
+                background: ${darkMode ? 'rgba(30, 30, 50, 0.8)' : '#f8f9fa'};
+                padding: 20px;
+                margin: 20px 30px;
+                border-radius: 10px;
+                border: 1px solid ${darkMode ? 'rgba(102, 126, 234, 0.2)' : '#e9ecef'};
+            `;
+            tabsContainer.parentNode.insertBefore(insightsContainer, tabsContainer.nextSibling);
+        }
+    }
+
+    if (insightsContainer && insights.length > 0) {
+        insightsContainer.innerHTML = `
+            <h3 style="margin-bottom: 15px; color: ${darkMode ? '#e0e0e0' : '#333'};">
+                <i class="fas fa-lightbulb" style="color: #fbbf24;"></i> Season Insights
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                ${insights.map(insight => `
+                    <div style="background: ${darkMode ? 'rgba(20, 20, 35, 0.8)' : 'white'}; padding: 15px; border-radius: 8px; border: 1px solid ${darkMode ? 'rgba(102, 126, 234, 0.2)' : '#e9ecef'};">
+                        <h4 style="margin-bottom: 10px; color: ${darkMode ? '#e0e0e0' : '#333'}; font-size: 1rem;">
+                            <i class="fas fa-chart-pie" style="color: #667eea; margin-right: 5px;"></i>
+                            ${insight.title}
+                        </h4>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            ${insight.content.map(item => `
+                                <li style="padding: 5px 0; color: ${darkMode ? '#a0a0a0' : '#6c757d'}; font-size: 0.9rem; border-bottom: 1px solid ${darkMode ? 'rgba(102, 126, 234, 0.1)' : '#e9ecef'};">
+                                    ${item}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     }
 }
 
@@ -234,7 +286,7 @@ function renderPredictions() {
     }
 
     container.innerHTML = predictions.map(pred => `
-        <div class="prediction-card" onclick="showMatchDetail(${pred.id})">
+        <div class="prediction-card ${darkMode ? 'dark-mode' : ''}" onclick="showMatchDetail(${pred.id})">
             <div class="prediction-header">
                 <span class="match-date">
                     <i class="fas fa-calendar"></i> ${pred.date}
@@ -256,11 +308,11 @@ function renderPredictions() {
 
             <div class="prediction-result">
                 <div class="prediction-label">Prediction</div>
-                <div class="prediction-value">${pred.prediction}</div>
+                <div class="prediction-value">${getPredictionIcon(pred.prediction)} ${pred.prediction}</div>
                 <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: ${pred.confidence}%"></div>
+                    <div class="confidence-fill" style="width: ${pred.confidence}%; background: ${getConfidenceColor(pred.confidence)}"></div>
                 </div>
-                <div style="margin-top: 10px; font-size: 0.9rem; color: #6c757d;">
+                <div style="margin-top: 10px; font-size: 0.9rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'};">
                     Confidence: ${pred.confidence}%
                 </div>
             </div>
@@ -268,7 +320,7 @@ function renderPredictions() {
             <div class="probabilities">
                 <div class="prob-item">
                     <div class="prob-label">Home Win</div>
-                    <div class="prob-value prob-home">${pred.home_prob}%</div>
+                    <div class="prob-value prob-home">${pred.home_win_prob}%</div>
                 </div>
                 <div class="prob-item">
                     <div class="prob-label">Draw</div>
@@ -276,9 +328,18 @@ function renderPredictions() {
                 </div>
                 <div class="prob-item">
                     <div class="prob-label">Away Win</div>
-                    <div class="prob-value prob-away">${pred.away_prob}%</div>
+                    <div class="prob-value prob-away">${pred.away_win_prob}%</div>
                 </div>
             </div>
+
+            ${pred.actual_result ? `
+                <div style="margin-top: 15px; padding: 10px; background: ${darkMode ? 'rgba(20, 20, 35, 0.8)' : '#f8f9fa'}; border-radius: 8px; border: 1px solid ${pred.is_correct ? 'rgba(74, 222, 128, 0.3)' : 'rgba(248, 113, 113, 0.3)'};">
+                    <div style="font-size: 0.9rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'}; margin-bottom: 5px;">Actual Result</div>
+                    <div style="font-size: 1.1rem; font-weight: 600; color: ${pred.is_correct ? '#4ade80' : '#f87171'};">
+                        ${pred.is_correct ? '✓' : '✗'} ${pred.actual_result}
+                    </div>
+                </div>
+            ` : ''}
         </div>
     `).join('');
 }
@@ -298,12 +359,25 @@ function renderTeams() {
     }
 
     container.innerHTML = teams.map(team => `
-        <div class="team-card">
-            <div class="team-rank">#${team.rank}</div>
+        <div class="team-card ${darkMode ? 'dark-mode' : ''}">
+            <div class="team-rank" style="color: ${getRankColor(team.rank)}">#${team.rank}</div>
             <div class="team-info">
                 <div class="team-name-display">${team.team}</div>
+                <div style="font-size: 0.85rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'}; margin-top: 5px;">
+                    ${team.wins}W ${team.draws}D ${team.losses}L | ${team.points} pts
+                </div>
+                ${team.form ? `
+                    <div style="font-size: 0.8rem; margin-top: 5px;">
+                        Form: <span style="font-weight: 600;">${team.form}</span>
+                    </div>
+                ` : ''}
             </div>
-            <div class="team-elo-display">${team.elo}</div>
+            <div style="text-align: right;">
+                <div class="team-elo-display" style="color: ${getRankColor(team.rank)}">${team.elo}</div>
+                <div style="font-size: 0.8rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'}; margin-top: 5px;">
+                    ${team.goal_difference > 0 ? '+' : ''}${team.goal_difference} GD
+                </div>
+            </div>
         </div>
     `).join('');
 }
@@ -322,6 +396,43 @@ function renderPerformance() {
     if (performance.last_updated) {
         document.getElementById('perf-updated').textContent = performance.last_updated;
     }
+
+    // Update performance cards with enhanced data
+    const performanceGrid = document.querySelector('.performance-grid');
+    if (performanceGrid && performance.total_matches) {
+        const enhancedCards = [
+            createEnhancedPerformanceCard(
+                'Accuracy',
+                `${performance.accuracy}%`,
+                'Overall prediction accuracy',
+                'fa-bullseye',
+                '#4ade80'
+            ),
+            createEnhancedPerformanceCard(
+                'Total Matches',
+                performance.total_matches,
+                'Matches analyzed this season',
+                'fa-database',
+                '#667eea'
+            ),
+            createEnhancedPerformanceCard(
+                'High Confidence',
+                `${performance.high_confidence_accuracy}%`,
+                'Accuracy on predictions >70% confidence',
+                'fa-chart-line',
+                '#fbbf24'
+            ),
+            createEnhancedPerformanceCard(
+                'Best Team',
+                performance.best_predicting_team || 'N/A',
+                `Highest prediction accuracy: ${performance.best_team_accuracy || 0}%`,
+                'fa-trophy',
+                '#f87171'
+            )
+        ];
+
+        performanceGrid.innerHTML = enhancedCards.join('');
+    }
 }
 
 // Update Header Stats
@@ -329,7 +440,11 @@ function updateHeaderStats(count) {
     if (performance.accuracy) {
         document.getElementById('accuracy').textContent = `${performance.accuracy}%`;
     }
-    document.getElementById('total-predictions').textContent = count;
+    if (performance.total_matches) {
+        document.getElementById('total-predictions').textContent = performance.total_matches;
+    } else {
+        document.getElementById('total-predictions').textContent = count;
+    }
 }
 
 // Render Historical Predictions
@@ -347,7 +462,7 @@ function renderHistorical() {
     }
 
     container.innerHTML = historical.map(pred => `
-        <div class="prediction-card ${pred.is_correct ? 'correct' : 'incorrect'}">
+        <div class="prediction-card ${pred.is_correct ? 'correct' : 'incorrect'} ${darkMode ? 'dark-mode' : ''}">
             <div class="prediction-header">
                 <span class="match-date">
                     <i class="fas fa-calendar"></i> ${pred.date}
@@ -361,12 +476,12 @@ function renderHistorical() {
             <div class="match-teams">
                 <div class="team">
                     <div class="team-name">${pred.home_team}</div>
-                    <div class="team-score">${pred.home_goals}</div>
+                    <div class="team-elo">ELO: ${pred.home_elo}</div>
                 </div>
-                <div class="vs">${pred.home_goals} - ${pred.away_goals}</div>
+                <div class="vs">VS</div>
                 <div class="team">
                     <div class="team-name">${pred.away_team}</div>
-                    <div class="team-score">${pred.away_goals}</div>
+                    <div class="team-elo">ELO: ${pred.away_elo}</div>
                 </div>
             </div>
 
@@ -375,11 +490,11 @@ function renderHistorical() {
                 <div class="prediction-comparison">
                     <div class="comparison-item">
                         <span class="comparison-label">Predicted:</span>
-                        <span class="comparison-value prediction">${pred.prediction}</span>
+                        <span class="comparison-value prediction">${getPredictionIcon(pred.prediction)} ${pred.prediction}</span>
                     </div>
                     <div class="comparison-item">
                         <span class="comparison-label">Actual:</span>
-                        <span class="comparison-value actual">${pred.actual}</span>
+                        <span class="comparison-value actual">${getPredictionIcon(pred.actual)} ${pred.actual}</span>
                     </div>
                 </div>
             </div>
@@ -397,6 +512,10 @@ function renderHistorical() {
                     <div class="prob-label">Away Win</div>
                     <div class="prob-value prob-away">${pred.away_prob}%</div>
                 </div>
+            </div>
+
+            <div style="margin-top: 10px; font-size: 0.85rem; color: ${darkMode ? '#a0a0a0' : '#6c757d'};">
+                Confidence: ${pred.confidence}% | Importance: ${pred.importance}
             </div>
         </div>
     `).join('');
