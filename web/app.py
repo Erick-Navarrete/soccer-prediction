@@ -815,68 +815,110 @@ def api_update():
         import subprocess
         import sys
         from pathlib import Path
+        import time
 
-        # Run the data processing scripts
         project_root = Path(__file__).parent.parent
 
         # Step 1: Fetch fresh data
         print("Step 1: Fetching fresh data from APIs...")
-        fetch_result = subprocess.run(
-            [sys.executable, str(project_root / 'fetch_premier_league_data.py')],
-            capture_output=True,
-            text=True,
-            cwd=str(project_root),
-            timeout=60
-        )
+        start_time = time.time()
 
-        if fetch_result.returncode != 0:
-            print(f"Fetch failed: {fetch_result.stderr}")
-            # Continue anyway, use existing data
+        try:
+            fetch_result = subprocess.run(
+                [sys.executable, str(project_root / 'fetch_premier_league_data.py')],
+                capture_output=True,
+                text=True,
+                cwd=str(project_root),
+                timeout=60
+            )
+
+            if fetch_result.returncode != 0:
+                print(f"Fetch warning: {fetch_result.stderr}")
+                # Continue anyway, use existing data
+        except subprocess.TimeoutExpired:
+            print("Fetch timed out, using existing data")
+        except Exception as e:
+            print(f"Fetch error: {e}")
+
+        fetch_time = time.time() - start_time
+        print(f"Step 1 completed in {fetch_time:.2f}s")
 
         # Step 2: Process current week predictions
         print("Step 2: Processing current week predictions...")
-        process_result = subprocess.run(
-            [sys.executable, str(project_root / 'data' / 'process_current_week.py')],
-            capture_output=True,
-            text=True,
-            cwd=str(project_root),
-            timeout=60
-        )
+        start_time = time.time()
 
-        if process_result.returncode != 0:
-            print(f"Process failed: {process_result.stderr}")
+        try:
+            process_result = subprocess.run(
+                [sys.executable, str(project_root / 'data' / 'process_current_week.py')],
+                capture_output=True,
+                text=True,
+                cwd=str(project_root),
+                timeout=60
+            )
+
+            if process_result.returncode != 0:
+                print(f"Process error: {process_result.stderr}")
+                return jsonify({
+                    "success": False,
+                    "error": f"Processing failed: {process_result.stderr}",
+                    "step": 2,
+                    "details": {
+                        "fetch_time": f"{fetch_time:.2f}s",
+                        "process_time": "failed"
+                    }
+                }), 500
+        except subprocess.TimeoutExpired:
             return jsonify({
                 "success": False,
-                "error": f"Processing failed: {process_result.stderr}"
+                "error": "Processing timed out after 60 seconds",
+                "step": 2,
+                "details": {
+                    "fetch_time": f"{fetch_time:.2f}s",
+                    "process_time": "timeout"
+                }
             }), 500
+
+        process_time = time.time() - start_time
+        print(f"Step 2 completed in {process_time:.2f}s")
 
         # Step 3: Reload predictions
         print("Step 3: Reloading predictions...")
+        start_time = time.time()
+
         load_model_and_data()
+
+        reload_time = time.time() - start_time
+        print(f"Step 3 completed in {reload_time:.2f}s")
 
         # Get updated predictions
         updated_predictions = load_current_predictions()
+
+        total_time = fetch_time + process_time + reload_time
 
         return jsonify({
             "success": True,
             "message": "Predictions updated successfully from APIs",
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "count": len(updated_predictions),
-            "predictions": updated_predictions
+            "predictions": updated_predictions,
+            "details": {
+                "fetch_time": f"{fetch_time:.2f}s",
+                "process_time": f"{process_time:.2f}s",
+                "reload_time": f"{reload_time:.2f}s",
+                "total_time": f"{total_time:.2f}s",
+                "steps_completed": 3
+            }
         })
 
-    except subprocess.TimeoutExpired:
-        return jsonify({
-            "success": False,
-            "error": "Update timed out after 60 seconds"
-        }), 500
     except Exception as e:
         print(f"Error updating predictions: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({
             "success": False,
-            "error": str(e)
+            "error": str(e),
+            "step": "unknown",
+            "traceback": traceback.format_exc()
         }), 500
 
 

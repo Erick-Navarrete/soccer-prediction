@@ -83,6 +83,46 @@
         </div>
     </nav>
 
+    <!-- Update Status Modal -->
+    <div class="modal" id="update-modal">
+        <div class="modal-content update-modal-content">
+            <div class="modal-header">
+                <h3 id="update-modal-title">Updating Predictions</h3>
+                <button class="modal-close" onclick="closeUpdateModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="update-modal-body">
+                <div class="update-progress">
+                    <div class="update-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div class="update-status" id="update-status">
+                        <p>Initializing update process...</p>
+                    </div>
+                    <div class="update-steps" id="update-steps">
+                        <div class="update-step" id="step-1">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                            <span>Fetching data from APIs...</span>
+                        </div>
+                        <div class="update-step" id="step-2">
+                            <i class="far fa-circle"></i>
+                            <span>Processing predictions...</span>
+                        </div>
+                        <div class="update-step" id="step-3">
+                            <i class="far fa-circle"></i>
+                            <span>Updating model...</span>
+                        </div>
+                        <div class="update-step" id="step-4">
+                            <i class="far fa-circle"></i>
+                            <span>Refreshing interface...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Hero Section (Simplified) -->
     <section class="hero-section">
         <div class="hero-content">

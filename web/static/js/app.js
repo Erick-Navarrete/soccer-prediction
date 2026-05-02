@@ -479,15 +479,46 @@ async function updateFromAPI() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
     btn.disabled = true;
 
+    // Show update modal
+    showUpdateModal();
+
     try {
+        // Step 1: Fetching data
+        updateStepStatus(1, 'active', 'Fetching data from APIs...');
+        await sleep(500); // Small delay for visual feedback
+
         // Call the update API endpoint
         const response = await fetch(`${API_BASE}/update`, {
             method: 'POST'
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const result = await response.json();
 
         if (result.success) {
+            // Step 1 complete
+            updateStepStatus(1, 'completed', 'Data fetched successfully');
+
+            // Step 2: Processing predictions
+            updateStepStatus(2, 'active', 'Processing predictions...');
+            await sleep(800);
+
+            // Step 2 complete
+            updateStepStatus(2, 'completed', 'Predictions processed');
+
+            // Step 3: Updating model
+            updateStepStatus(3, 'active', 'Updating model...');
+            await sleep(800);
+
+            // Step 3 complete
+            updateStepStatus(3, 'completed', 'Model updated');
+
+            // Step 4: Refreshing interface
+            updateStepStatus(4, 'active', 'Refreshing interface...');
+
             // Refresh all data after successful update
             await Promise.all([
                 loadPredictions(),
@@ -500,22 +531,132 @@ async function updateFromAPI() {
                 loadHistoricalDataTable()
             ]);
 
-            btn.innerHTML = '<i class="fas fa-check"></i> Updated!';
+            // Step 4 complete
+            updateStepStatus(4, 'completed', 'Interface refreshed');
+
+            // Show success message
+            document.getElementById('update-status').innerHTML = `
+                <p style="color: var(--success-color); font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> Update Complete!
+                </p>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">
+                    ${result.message || 'Predictions updated successfully'}
+                </p>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                    Updated ${result.count || 0} predictions
+                </p>
+            `;
+
+            // Close modal after delay
             setTimeout(() => {
-                btn.innerHTML = originalContent;
-                btn.disabled = false;
+                closeUpdateModal();
+                btn.innerHTML = '<i class="fas fa-check"></i> Updated!';
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                }, 2000);
             }, 2000);
         } else {
             throw new Error(result.error || 'Update failed');
         }
     } catch (error) {
         console.error('Error updating from API:', error);
-        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+
+        // Show error in modal
+        document.getElementById('update-status').innerHTML = `
+            <p style="color: var(--danger-color); font-weight: 600;">
+                <i class="fas fa-exclamation-triangle"></i> Update Failed
+            </p>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem;">
+                ${error.message}
+            </p>
+        `;
+
+        // Mark all steps as failed
+        for (let i = 1; i <= 4; i++) {
+            const step = document.getElementById(`step-${i}`);
+            if (step && !step.classList.contains('completed')) {
+                step.innerHTML = `<i class="fas fa-times-circle" style="color: var(--danger-color);"></i><span>${step.querySelector('span').textContent}</span>`;
+            }
+        }
+
         setTimeout(() => {
-            btn.innerHTML = originalContent;
-            btn.disabled = false;
-        }, 2000);
+            closeUpdateModal();
+            btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }, 2000);
+        }, 3000);
     }
+}
+
+// Helper function to sleep
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Show update modal
+function showUpdateModal() {
+    const modal = document.getElementById('update-modal');
+    modal.classList.add('active');
+
+    // Reset steps
+    for (let i = 1; i <= 4; i++) {
+        const step = document.getElementById(`step-${i}`);
+        step.className = 'update-step';
+        step.innerHTML = `
+            <i class="far fa-circle"></i>
+            <span>${getStepText(i)}</span>
+        `;
+    }
+
+    // Reset status
+    document.getElementById('update-status').innerHTML = '<p>Initializing update process...</p>';
+}
+
+// Close update modal
+function closeUpdateModal() {
+    const modal = document.getElementById('update-modal');
+    modal.classList.remove('active');
+}
+
+// Update step status
+function updateStepStatus(stepNum, status, message) {
+    const step = document.getElementById(`step-${stepNum}`);
+    if (!step) return;
+
+    // Remove existing classes
+    step.classList.remove('active', 'completed');
+
+    // Add new status class
+    if (status === 'active') {
+        step.classList.add('active');
+        step.innerHTML = `
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <span>${message}</span>
+        `;
+    } else if (status === 'completed') {
+        step.classList.add('completed');
+        step.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+        `;
+    }
+
+    // Update overall status
+    document.getElementById('update-status').innerHTML = `<p>${message}</p>`;
+}
+
+// Get step text
+function getStepText(stepNum) {
+    const steps = {
+        1: 'Fetching data from APIs...',
+        2: 'Processing predictions...',
+        3: 'Updating model...',
+        4: 'Refreshing interface...'
+    };
+    return steps[stepNum] || 'Processing...';
 }
 
 // Load Teams
