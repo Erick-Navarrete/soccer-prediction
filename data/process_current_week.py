@@ -305,17 +305,109 @@ def main():
     except:
         performance = {}
 
-    # Create insights from current data
+    # Create comprehensive insights from current data
     insights = []
+
+    # Current week insights
     if current_predictions:
         high_conf_matches = [p for p in current_predictions if p.get('confidence', 0) >= 70]
+        medium_conf_matches = [p for p in current_predictions if 50 <= p.get('confidence', 0) < 70]
+        low_conf_matches = [p for p in current_predictions if p.get('confidence', 0) < 50]
+
+        # Count predictions by type
+        home_wins = [p for p in current_predictions if p.get('prediction') == 'Home Win']
+        draws = [p for p in current_predictions if p.get('prediction') == 'Draw']
+        away_wins = [p for p in current_predictions if p.get('prediction') == 'Away Win']
+
         insights.append({
             "type": "current_week",
             "title": "Current Week Predictions",
             "content": [
                 f"Total matches: {len(current_predictions)}",
                 f"High confidence: {len(high_conf_matches)} matches",
-                f"Average confidence: {round(sum(p.get('confidence', 0) for p in current_predictions) / len(current_predictions), 2)}%"
+                f"Medium confidence: {len(medium_conf_matches)} matches",
+                f"Low confidence: {len(low_conf_matches)} matches",
+                f"Average confidence: {round(sum(p.get('confidence', 0) for p in current_predictions) / len(current_predictions), 2)}%",
+                f"Home wins predicted: {len(home_wins)}",
+                f"Draws predicted: {len(draws)}",
+                f"Away wins predicted: {len(away_wins)}"
+            ]
+        })
+
+    # Historical performance insights
+    if historical_matches:
+        total_historical = len(historical_matches)
+        correct_historical = sum(1 for m in historical_matches if m.get('is_correct', False))
+        accuracy_historical = round((correct_historical / total_historical) * 100, 2) if total_historical > 0 else 0
+
+        # Count result types
+        home_wins_actual = [m for m in historical_matches if m.get('actual') == 'Home Win']
+        draws_actual = [m for m in historical_matches if m.get('actual') == 'Draw']
+        away_wins_actual = [m for m in historical_matches if m.get('actual') == 'Away Win']
+
+        # High confidence accuracy
+        high_conf_historical = [m for m in historical_matches if m.get('confidence', 0) >= 70]
+        high_conf_correct = sum(1 for m in high_conf_historical if m.get('is_correct', False))
+        high_conf_accuracy = round((high_conf_correct / len(high_conf_historical)) * 100, 2) if high_conf_historical else 0
+
+        insights.append({
+            "type": "historical_performance",
+            "title": "Historical Performance",
+            "content": [
+                f"Total matches analyzed: {total_historical}",
+                f"Overall accuracy: {accuracy_historical}%",
+                f"Correct predictions: {correct_historical}",
+                f"High confidence matches: {len(high_conf_historical)}",
+                f"High confidence accuracy: {high_conf_accuracy}%",
+                f"Home wins: {len(home_wins_actual)}",
+                f"Draws: {len(draws_actual)}",
+                f"Away wins: {len(away_wins_actual)}"
+            ]
+        })
+
+    # Team performance insights
+    if team_stats:
+        # Get top teams
+        top_teams = sorted(team_stats, key=lambda x: x.get('points', 0), reverse=True)[:5]
+
+        insights.append({
+            "type": "team_performance",
+            "title": "Top Teams This Season",
+            "content": [
+                f"1. {top_teams[0].get('team', 'N/A')} - {top_teams[0].get('points', 0)} pts" if len(top_teams) > 0 else "",
+                f"2. {top_teams[1].get('team', 'N/A')} - {top_teams[1].get('points', 0)} pts" if len(top_teams) > 1 else "",
+                f"3. {top_teams[2].get('team', 'N/A')} - {top_teams[2].get('points', 0)} pts" if len(top_teams) > 2 else "",
+                f"4. {top_teams[3].get('team', 'N/A')} - {top_teams[3].get('points', 0)} pts" if len(top_teams) > 3 else "",
+                f"5. {top_teams[4].get('team', 'N/A')} - {top_teams[4].get('points', 0)} pts" if len(top_teams) > 4 else ""
+            ]
+        })
+
+    # Week-by-week analysis
+    if week_summaries:
+        recent_weeks = week_summaries[-3:]  # Last 3 weeks
+        week_insights = []
+        for week in recent_weeks:
+            week_insights.append(
+                f"Week {week['week_number']}: {week['accuracy']}% accuracy ({week['correct_predictions']}/{week['total_matches']} correct)"
+            )
+
+        insights.append({
+            "type": "weekly_analysis",
+            "title": "Recent Weekly Performance",
+            "content": week_insights if week_insights else ["No recent week data available"]
+        })
+
+    # Model performance insights
+    if performance:
+        insights.append({
+            "type": "model_performance",
+            "title": "Model Performance Metrics",
+            "content": [
+                f"Overall accuracy: {performance.get('accuracy', 0)}%",
+                f"Total predictions: {performance.get('total_predictions', 0)}",
+                f"High confidence accuracy: {performance.get('high_confidence_accuracy', 0)}%",
+                f"Log loss: {performance.get('log_loss', 0):.3f}",
+                f"Last updated: {performance.get('last_updated', 'N/A')}"
             ]
         })
 

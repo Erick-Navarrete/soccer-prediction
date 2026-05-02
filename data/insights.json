@@ -5,7 +5,57 @@
     "content": [
       "Total matches: 10",
       "High confidence: 0 matches",
-      "Average confidence: 47.79%"
+      "Medium confidence: 3 matches",
+      "Low confidence: 7 matches",
+      "Average confidence: 47.79%",
+      "Home wins predicted: 5",
+      "Draws predicted: 0",
+      "Away wins predicted: 5"
+    ]
+  },
+  {
+    "type": "historical_performance",
+    "title": "Historical Performance",
+    "content": [
+      "Total matches analyzed: 339",
+      "Overall accuracy: 50.15%",
+      "Correct predictions: 170",
+      "High confidence matches: 23",
+      "High confidence accuracy: 78.26%",
+      "Home wins: 143",
+      "Draws: 90",
+      "Away wins: 106"
+    ]
+  },
+  {
+    "type": "team_performance",
+    "title": "Top Teams This Season",
+    "content": [
+      "1. Arsenal - 73 pts",
+      "2. Man City - 70 pts",
+      "3. Man United - 61 pts",
+      "4. Liverpool - 58 pts",
+      "5. Aston Villa - 58 pts"
+    ]
+  },
+  {
+    "type": "weekly_analysis",
+    "title": "Recent Weekly Performance",
+    "content": [
+      "Week 50: 80.0% accuracy (8/10 correct)",
+      "Week 51: 60.0% accuracy (6/10 correct)",
+      "Week 52: 63.64% accuracy (7/11 correct)"
+    ]
+  },
+  {
+    "type": "model_performance",
+    "title": "Model Performance Metrics",
+    "content": [
+      "Overall accuracy: 51.3%",
+      "Total predictions: 0",
+      "High confidence accuracy: 100.0%",
+      "Log loss: 0.000",
+      "Last updated: 2026-05-01 13:53:57"
     ]
   }
 ]
