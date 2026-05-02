@@ -738,10 +738,50 @@ function renderPredictions() {
                 <p>No upcoming matches found</p>
             </div>
         `;
+        updatePredictionStats();
         return;
     }
 
-    container.innerHTML = predictions.map(pred => `
+    // Apply filters if set
+    let filteredPredictions = [...predictions];
+    const dateFrom = document.getElementById('pred-date-from').value;
+    const dateTo = document.getElementById('pred-date-to').value;
+    const confidenceFilter = parseInt(document.getElementById('pred-confidence-filter').value);
+    const predictionFilter = document.getElementById('pred-prediction-filter').value;
+
+    if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        filteredPredictions = filteredPredictions.filter(pred => {
+            const predDate = parsePredictionDate(pred.date);
+            return predDate >= fromDate;
+        });
+    }
+
+    if (dateTo) {
+        const toDate = new Date(dateTo);
+        filteredPredictions = filteredPredictions.filter(pred => {
+            const predDate = parsePredictionDate(pred.date);
+            return predDate <= toDate;
+        });
+    }
+
+    if (confidenceFilter > 0) {
+        filteredPredictions = filteredPredictions.filter(pred => pred.confidence >= confidenceFilter);
+    }
+
+    if (predictionFilter !== 'all') {
+        filteredPredictions = filteredPredictions.filter(pred => pred.prediction === predictionFilter);
+    }
+
+    // Update filter info
+    const filterInfo = document.getElementById('pred-filter-info');
+    if (dateFrom || dateTo || confidenceFilter > 0 || predictionFilter !== 'all') {
+        filterInfo.innerHTML = `<i class="fas fa-filter"></i> Showing ${filteredPredictions.length} of ${predictions.length} predictions`;
+    } else {
+        filterInfo.innerHTML = `<i class="fas fa-list"></i> Showing all ${predictions.length} predictions`;
+    }
+
+    container.innerHTML = filteredPredictions.map(pred => `
         <div class="prediction-card ${darkMode ? 'dark-mode' : ''}" onclick="showMatchDetail(${pred.id})">
             <div class="prediction-header">
                 <span class="match-date">
@@ -796,6 +836,75 @@ function renderPredictions() {
             ` : ''}
         </div>
     `).join('');
+
+    // Update stats based on filtered predictions
+    updatePredictionStats(filteredPredictions);
+}
+
+// Parse prediction date (handles multiple formats)
+function parsePredictionDate(dateString) {
+    if (!dateString) return new Date();
+
+    // Try different date formats
+    const formats = [
+        // MM/DD/YYYY HH:MM
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s(\d{1,2}):(\d{2})$/,
+        // DD/MM/YYYY HH:MM
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s(\d{1,2}):(\d{2})$/,
+        // YYYY-MM-DD
+        /^(\d{4})-(\d{1,2})-(\d{1,2})$/
+    ];
+
+    for (const format of formats) {
+        const match = dateString.match(format);
+        if (match) {
+            // Determine if it's MM/DD or DD/MM format based on first value
+            if (match[1] > 12) {
+                // It's DD/MM/YYYY
+                return new Date(match[3], match[2] - 1, match[1], match[4] || 0, match[5] || 0);
+            } else {
+                // It's MM/DD/YYYY
+                return new Date(match[3], match[1] - 1, match[2], match[4] || 0, match[5] || 0);
+            }
+        }
+    }
+
+    // Fallback to standard date parsing
+    const parsed = new Date(dateString);
+    return isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
+// Update Prediction Stats
+function updatePredictionStats(filteredPredictions = null) {
+    const dataToUse = filteredPredictions || predictions;
+
+    // Calculate statistics
+    const total = dataToUse.length;
+    const highConfidence = dataToUse.filter(p => p.confidence >= 70).length;
+    const homeWins = dataToUse.filter(p => p.prediction === 'Home Win').length;
+    const draws = dataToUse.filter(p => p.prediction === 'Draw').length;
+    const awayWins = dataToUse.filter(p => p.prediction === 'Away Win').length;
+
+    // Update DOM
+    document.getElementById('pred-total').textContent = total;
+    document.getElementById('pred-high-confidence').textContent = highConfidence;
+    document.getElementById('pred-home-wins').textContent = homeWins;
+    document.getElementById('pred-draws').textContent = draws;
+    document.getElementById('pred-away-wins').textContent = awayWins;
+}
+
+// Apply Prediction Filter
+function applyPredictionFilter() {
+    renderPredictions();
+}
+
+// Clear Prediction Filter
+function clearPredictionFilter() {
+    document.getElementById('pred-date-from').value = '';
+    document.getElementById('pred-date-to').value = '';
+    document.getElementById('pred-confidence-filter').value = '0';
+    document.getElementById('pred-prediction-filter').value = 'all';
+    renderPredictions();
 }
 
 // Render Teams

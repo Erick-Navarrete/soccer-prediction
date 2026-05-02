@@ -166,6 +166,97 @@
                 </button>
             </div>
 
+            <!-- Prediction Stats -->
+            <div class="historical-stats" id="prediction-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-futbol"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Matches</h3>
+                        <p class="stat-value" id="pred-total">--</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>High Confidence</h3>
+                        <p class="stat-value" id="pred-high-confidence">--</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Home Wins</h3>
+                        <p class="stat-value" id="pred-home-wins">--</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Draws</h3>
+                        <p class="stat-value" id="pred-draws">--</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-plane"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Away Wins</h3>
+                        <p class="stat-value" id="pred-away-wins">--</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="date-filter-section">
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="pred-date-from">From:</label>
+                        <input type="date" id="pred-date-from" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label for="pred-date-to">To:</label>
+                        <input type="date" id="pred-date-to" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label for="pred-confidence-filter">Min Confidence:</label>
+                        <select id="pred-confidence-filter" class="filter-select">
+                            <option value="0">All</option>
+                            <option value="50">50%+</option>
+                            <option value="60">60%+</option>
+                            <option value="70">70%+</option>
+                            <option value="80">80%+</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="pred-prediction-filter">Prediction:</label>
+                        <select id="pred-prediction-filter" class="filter-select">
+                            <option value="all">All</option>
+                            <option value="Home Win">Home Win</option>
+                            <option value="Draw">Draw</option>
+                            <option value="Away Win">Away Win</option>
+                        </select>
+                    </div>
+                    <button class="modern-btn" onclick="applyPredictionFilter()">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <button class="modern-btn secondary" onclick="clearPredictionFilter()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+                <div class="filter-info" id="pred-filter-info">
+                    Showing all predictions
+                </div>
+            </div>
+
             <div class="predictions-grid" id="predictions-list">
                 <div class="loading">
                     <i class="fas fa-spinner fa-spin"></i>
