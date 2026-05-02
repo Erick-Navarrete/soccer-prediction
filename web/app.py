@@ -810,32 +810,70 @@ def api_status():
 
 @app.route('/api/update', methods=['POST'])
 def api_update():
-    """Trigger manual update of predictions."""
+    """Trigger manual update of predictions from APIs and process modeling."""
     try:
-        # Import update function
+        import subprocess
         import sys
-        sys.path.append(str(Path(__file__).parent.parent))
-        from src.update_predictions import update_predictions
+        from pathlib import Path
 
-        # Run update
-        success = update_predictions(seasons=["2425"], leagues=["E0"])
+        # Run the data processing scripts
+        project_root = Path(__file__).parent.parent
 
-        if success:
-            # Reload predictions
-            load_model_and_data()
+        # Step 1: Fetch fresh data
+        print("Step 1: Fetching fresh data from APIs...")
+        fetch_result = subprocess.run(
+            [sys.executable, str(project_root / 'fetch_premier_league_data.py')],
+            capture_output=True,
+            text=True,
+            cwd=str(project_root),
+            timeout=60
+        )
 
-            return jsonify({
-                "success": True,
-                "message": "Predictions updated successfully",
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            })
-        else:
+        if fetch_result.returncode != 0:
+            print(f"Fetch failed: {fetch_result.stderr}")
+            # Continue anyway, use existing data
+
+        # Step 2: Process current week predictions
+        print("Step 2: Processing current week predictions...")
+        process_result = subprocess.run(
+            [sys.executable, str(project_root / 'data' / 'process_current_week.py')],
+            capture_output=True,
+            text=True,
+            cwd=str(project_root),
+            timeout=60
+        )
+
+        if process_result.returncode != 0:
+            print(f"Process failed: {process_result.stderr}")
             return jsonify({
                 "success": False,
-                "message": "Failed to update predictions"
+                "error": f"Processing failed: {process_result.stderr}"
             }), 500
 
+        # Step 3: Reload predictions
+        print("Step 3: Reloading predictions...")
+        load_model_and_data()
+
+        # Get updated predictions
+        updated_predictions = load_current_predictions()
+
+        return jsonify({
+            "success": True,
+            "message": "Predictions updated successfully from APIs",
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "count": len(updated_predictions),
+            "predictions": updated_predictions
+        })
+
+    except subprocess.TimeoutExpired:
+        return jsonify({
+            "success": False,
+            "error": "Update timed out after 60 seconds"
+        }), 500
     except Exception as e:
+        print(f"Error updating predictions: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "success": False,
             "error": str(e)

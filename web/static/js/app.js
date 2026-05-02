@@ -414,16 +414,23 @@ async function refreshHistoricalData() {
 async function loadPredictions() {
     try {
         const response = await fetch(`${API_BASE}/predictions`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const result = await response.json();
 
         if (result.success) {
             predictions = result.data;
             renderPredictions();
             updateHeaderStats(result.count);
+        } else {
+            throw new Error(result.error || 'Failed to load predictions');
         }
     } catch (error) {
         console.error('Error loading predictions:', error);
-        showErrorMessage('predictions-list', 'Failed to load predictions');
+        showErrorMessage('predictions-list', `Failed to load predictions: ${error.message}`);
     }
 }
 
@@ -473,23 +480,34 @@ async function updateFromAPI() {
     btn.disabled = true;
 
     try {
-        // Refresh all data
-        await Promise.all([
-            loadPredictions(),
-            loadHistorical(),
-            loadHistoricalStats(),
-            loadTeams(),
-            loadPerformance(),
-            loadInsights(),
-            loadHistoricalInsights(),
-            loadHistoricalDataTable()
-        ]);
+        // Call the update API endpoint
+        const response = await fetch(`${API_BASE}/update`, {
+            method: 'POST'
+        });
 
-        btn.innerHTML = '<i class="fas fa-check"></i> Updated!';
-        setTimeout(() => {
-            btn.innerHTML = originalContent;
-            btn.disabled = false;
-        }, 2000);
+        const result = await response.json();
+
+        if (result.success) {
+            // Refresh all data after successful update
+            await Promise.all([
+                loadPredictions(),
+                loadHistorical(),
+                loadHistoricalStats(),
+                loadTeams(),
+                loadPerformance(),
+                loadInsights(),
+                loadHistoricalInsights(),
+                loadHistoricalDataTable()
+            ]);
+
+            btn.innerHTML = '<i class="fas fa-check"></i> Updated!';
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }, 2000);
+        } else {
+            throw new Error(result.error || 'Update failed');
+        }
     } catch (error) {
         console.error('Error updating from API:', error);
         btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
@@ -535,15 +553,22 @@ async function loadPerformance() {
 async function loadHistorical() {
     try {
         const response = await fetch(`${API_BASE}/historical`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const result = await response.json();
 
         if (result.success) {
             historical = result.data;
             renderHistorical();
+        } else {
+            throw new Error(result.error || 'Failed to load historical predictions');
         }
     } catch (error) {
         console.error('Error loading historical:', error);
-        showErrorMessage('historical-list', 'Failed to load historical predictions');
+        showErrorMessage('historical-list', `Failed to load historical predictions: ${error.message}`);
     }
 }
 
