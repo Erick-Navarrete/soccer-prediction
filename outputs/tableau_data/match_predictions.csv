@@ -1,11 +1,11 @@
-date,time,home_team,away_team,venue,tv,home_win_prob,draw_prob,away_win_prob,prediction,actual_result,league,confidence_level,odds_home,odds_away,over_under,prediction_text,actual_result_text,home_win_pct,draw_pct,away_win_pct,year,month,day_of_week,prediction_correct
-2026-05-01,14:00,Leeds United,Burnley,"Elland Road, Leeds, England","USA Network, Universo",0.535206,0.2,0.264794,2,-1,Premier League,Medium,-230,190,2.5,Home Win,Not Played,53.52,20.0,26.48,2026,5,Friday,False
-2026-05-02,09:00,Brentford,West Ham United,"Gtech Community Stadium, London, England","USA Network, Universo",0.382609,0.2,0.417391,0,-1,Premier League,Low,100,-120,2.5,Away Win,Not Played,38.26,20.0,41.74,2026,5,Saturday,False
-2026-05-02,09:00,Newcastle United,Brighton & Hove Albion,"St. James Park, Newcastle-upon-Tyne, England",Peacock,0.308772,0.2,0.491228,0,-1,Premier League,Medium,150,-175,2.5,Away Win,Not Played,30.88,20.0,49.12,2026,5,Saturday,False
-2026-05-02,09:00,Wolverhampton Wanderers,Sunderland,"Molineux Stadium, Wolverhampton, England",Peacock,0.437149,0.2,0.362851,2,-1,Premier League,Low,-110,130,2.5,Home Win,Not Played,43.71,20.0,36.29,2026,5,Saturday,False
-2026-05-02,11:30,Arsenal,Fulham,"Emirates Stadium, London, England","NBC, Telemundo",0.530918,0.2,0.269082,2,-1,Premier League,Medium,-225,185,2.5,Home Win,Not Played,53.09,20.0,26.91,2026,5,Saturday,False
-2026-05-03,08:00,AFC Bournemouth,Crystal Palace,"Vitality Stadium, Bournemouth, England",Peacock,0.470569,0.2,0.329431,2,-1,Premier League,Medium,-155,135,2.5,Home Win,Not Played,47.06,20.0,32.94,2026,5,Sunday,False
-2026-05-03,09:30,Manchester United,Liverpool,"Old Trafford, Manchester, England","Telemundo, Peacock",0.336134,0.2,0.463866,0,-1,Premier League,Medium,130,-150,3.5,Away Win,Not Played,33.61,20.0,46.39,2026,5,Sunday,False
-2026-05-03,13:00,Aston Villa,Tottenham Hotspur,"Villa Park, Birmingham, England","USA Network, Telemundo",0.350365,0.2,0.449635,0,-1,Premier League,Low,120,-140,2.5,Away Win,Not Played,35.04,20.0,44.96,2026,5,Sunday,False
-2026-05-04,09:00,Chelsea,Nottingham Forest,"Stamford Bridge, London, England","USA Network, Universo",0.456893,0.2,0.343107,2,-1,Premier League,Medium,-145,125,2.5,Home Win,Not Played,45.69,20.0,34.31,2026,5,Monday,False
-2026-05-04,14:00,Everton,Manchester City,"Hill Dickinson Stadium, Liverpool, England","USA Network, Universo",0.273504,0.2,0.526496,0,-1,Premier League,Medium,180,-220,2.5,Away Win,Not Played,27.35,20.0,52.65,2026,5,Monday,False
+date,home_team,away_team,home_win_prob,draw_prob,away_win_prob,prediction,actual_result,league,confidence_level,prediction_text,actual_result_text,home_win_pct,draw_pct,away_win_pct,year,month,day_of_week,prediction_correct
+2026-05-01,Leeds United,Burnley,0.54,0.2,0.26,2,-1,Premier League,Medium,Home Win,Not Played,53.5,20.0,26.5,2026,5,Friday,False
+2026-05-02,Arsenal,Fulham,0.53,0.2,0.27,2,-1,Premier League,Medium,Home Win,Not Played,53.1,20.0,26.9,2026,5,Saturday,False
+2026-05-04,Everton,Manchester City,0.27,0.2,0.53,0,-1,Premier League,Medium,Away Win,Not Played,27.4,20.0,52.6,2026,5,Monday,False
+2026-05-02,Newcastle United,Brighton & Hove Albion,0.31,0.2,0.49,0,-1,Premier League,Low,Away Win,Not Played,30.9,20.0,49.1,2026,5,Saturday,False
+2026-05-03,AFC Bournemouth,Crystal Palace,0.47,0.2,0.33,2,-1,Premier League,Low,Home Win,Not Played,47.1,20.0,32.9,2026,5,Sunday,False
+2026-05-03,Manchester United,Liverpool,0.34,0.2,0.46,0,-1,Premier League,Low,Away Win,Not Played,33.6,20.0,46.4,2026,5,Sunday,False
+2026-05-04,Chelsea,Nottingham Forest,0.46,0.2,0.34,2,-1,Premier League,Low,Home Win,Not Played,45.7,20.0,34.3,2026,5,Monday,False
+2026-05-03,Aston Villa,Tottenham Hotspur,0.35,0.2,0.45,0,-1,Premier League,Low,Away Win,Not Played,35.0,20.0,45.0,2026,5,Sunday,False
+2026-05-02,Wolverhampton Wanderers,Sunderland,0.44,0.2,0.36,2,-1,Premier League,Low,Home Win,Not Played,43.7,20.0,36.3,2026,5,Saturday,False
+2026-05-02,Brentford,West Ham United,0.38,0.2,0.42,0,-1,Premier League,Low,Away Win,Not Played,38.3,20.0,41.7,2026,5,Saturday,False
