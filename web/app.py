@@ -766,6 +766,259 @@ def api_predictions_refresh():
         }), 500
 
 
+@app.route('/api/chart-data')
+def api_chart_data():
+    """Get aggregated data for charts."""
+    try:
+        historical_data = []
+        hist_path = Path(__file__).parent.parent / "data" / "historical.json"
+        if hist_path.exists():
+            with open(hist_path, 'r') as f:
+                historical_data = json.load(f)
+
+        perf_data = load_performance_data()
+        team_data = load_team_stats()
+
+        # 1) Accuracy over time (by month)
+        monthly_accuracy = {}
+        for pred in historical_data:
+            month_key = f"{pred.get('year', 2025)}-{pred.get('month', 1):02d}"
+            if month_key not in monthly_accuracy:
+                monthly_accuracy[month_key] = {"total": 0, "correct": 0}
+            monthly_accuracy[month_key]["total"] += 1
+            if pred.get("is_correct"):
+                monthly_accuracy[month_key]["correct"] += 1
+
+        accuracy_over_time = []
+        for month_key in sorted(monthly_accuracy.keys()):
+            m = monthly_accuracy[month_key]
+            acc = round((m["correct"] / m["total"]) * 100, 1) if m["total"] > 0 else 0
+            accuracy_over_time.append({
+                "month": month_key,
+                "accuracy": acc,
+                "total": m["total"],
+                "correct": m["correct"]
+            })
+
+        # 2) Prediction distribution
+        home_wins = sum(1 for p in historical_data if p.get("actual") == "Home Win")
+        draws = sum(1 for p in historical_data if p.get("actual") == "Draw")
+        away_wins = sum(1 for p in historical_data if p.get("actual") == "Away Win")
+
+        # 3) Confidence calibration (accuracy per bucket)
+        confidence_buckets = {
+            "0-30%": {"total": 0, "correct": 0},
+            "30-50%": {"total": 0, "correct": 0},
+            "50-70%": {"total": 0, "correct": 0},
+            "70-85%": {"total": 0, "correct": 0},
+            "85-100%": {"total": 0, "correct": 0},
+        }
+        for pred in historical_data:
+            conf = pred.get("confidence", 0)
+            if conf < 30:
+                bucket = "0-30%"
+            elif conf < 50:
+                bucket = "30-50%"
+            elif conf < 70:
+                bucket = "50-70%"
+            elif conf < 85:
+                bucket = "70-85%"
+            else:
+                bucket = "85-100%"
+            confidence_buckets[bucket]["total"] += 1
+            if pred.get("is_correct"):
+                confidence_buckets[bucket]["correct"] += 1
+
+        calibration = []
+        for bucket_name, bucket_data in confidence_buckets.items():
+            acc = round((bucket_data["correct"] / bucket_data["total"]) * 100, 1) if bucket_data["total"] > 0 else 0
+            calibration.append({
+                "bucket": bucket_name,
+                "accuracy": acc,
+                "total": bucket_data["total"]
+            })
+
+        # 4) Top teams ELO
+        top_teams_elo = []
+        for team in (team_data or [])[:10]:
+            top_teams_elo.append({
+                "team": team["team"],
+                "elo": team["elo"],
+                "wins": team["wins"],
+                "points": team["points"]
+            })
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "accuracy_over_time": accuracy_over_time,
+                "prediction_distribution": {
+                    "home_wins": home_wins,
+                    "draws": draws,
+                    "away_wins": away_wins
+                },
+                "confidence_calibration": calibration,
+                "top_teams_elo": top_teams_elo
+            }
+        })
+
+    except Exception as e:
+        print(f"Error loading chart data: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/match/<int:match_id>/detail')
+def api_match_detail_enriched(match_id):
+    """Get enriched match detail for the detail modal."""
+    try:
+        # Try predictions first
+        predictions = load_current_predictions()
+        source = "predictions"
+
+        match = None
+        for pred in predictions:
+            if pred.get("id") == match_id:
+                match = pred
+                break
+
+        # Fallback to historical
+        if not match:
+            hist_path = Path(__file__).parent.parent / "data" / "historical.json"
+            if hist_path.exists():
+                with open(hist_path, 'r') as f:
+                    historical_data = json.load(f)
+                for pred in historical_data:
+                    if pred.get("id") == match_id:
+                        match = pred
+                        source = "historical"
+                        break
+
+        if not match:
+            return jsonify({"success": False, "message": "Match not found"}), 404
+
+        # Enrich with team stats
+        team_data = load_team_stats()
+        home_stats = None
+        away_stats = None
+        home_team_name = match.get("home_team", "")
+        away_team_name = match.get("away_team", "")
+
+        for team in (team_data or []):
+            if team["team"] == home_team_name:
+                home_stats = team
+            elif team["team"] == away_team_name:
+                away_stats = team
+
+        # Build ELO comparison visual data
+        home_elo = match.get("home_elo", 1500)
+        away_elo = match.get("away_elo", 1500)
+        max_elo = max(home_elo, away_elo, 1700)
+        min_elo = min(home_elo, away_elo, 1300)
+
+        elo_comparison = {
+            "home": {
+                "team": home_team_name,
+                "elo": home_elo,
+                "percentage": round(((home_elo - min_elo) / (max_elo - min_elo)) * 100) if max_elo != min_elo else 50
+            },
+            "away": {
+                "team": away_team_name,
+                "elo": away_elo,
+                "percentage": round(((away_elo - min_elo) / (max_elo - min_elo)) * 100) if max_elo != min_elo else 50
+            },
+            "diff": match.get("elo_diff", home_elo - away_elo)
+        }
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "match": match,
+                "source": source,
+                "home_stats": home_stats,
+                "away_stats": away_stats,
+                "elo_comparison": elo_comparison
+            }
+        })
+
+    except Exception as e:
+        print(f"Error loading match detail: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/historical/search')
+def api_historical_search():
+    """Search and filter historical predictions with pagination."""
+    try:
+        hist_path = Path(__file__).parent.parent / "data" / "historical.json"
+        if not hist_path.exists():
+            return jsonify({"success": True, "data": [], "total": 0})
+
+        with open(hist_path, 'r') as f:
+            historical_data = json.load(f)
+
+        # Filters
+        team = request.args.get('team', '').lower()
+        result = request.args.get('result', '')  # "Home Win", "Draw", "Away Win"
+        prediction = request.args.get('prediction', '')
+        min_confidence = request.args.get('min_confidence', 0, type=int)
+        max_confidence = request.args.get('max_confidence', 100, type=int)
+        date_from = request.args.get('date_from', '')
+        date_to = request.args.get('date_to', '')
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+
+        filtered = historical_data
+
+        if team:
+            filtered = [p for p in filtered if
+                        team in p.get('home_team', '').lower() or
+                        team in p.get('away_team', '').lower()]
+
+        if result:
+            filtered = [p for p in filtered if p.get('actual') == result]
+
+        if prediction:
+            filtered = [p for p in filtered if p.get('prediction') == prediction]
+
+        if min_confidence > 0:
+            filtered = [p for p in filtered if p.get('confidence', 0) >= min_confidence]
+
+        if max_confidence < 100:
+            filtered = [p for p in filtered if p.get('confidence', 0) <= max_confidence]
+
+        if date_from:
+            filtered = [p for p in filtered if p.get('date', '') >= date_from]
+
+        if date_to:
+            filtered = [p for p in filtered if p.get('date', '') <= date_to]
+
+        total = len(filtered)
+        start = (page - 1) * per_page
+        end = start + per_page
+        page_data = filtered[start:end]
+
+        # Calculate page stats
+        correct_count = sum(1 for p in filtered if p.get('is_correct'))
+
+        return jsonify({
+            "success": True,
+            "data": page_data,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": (total + per_page - 1) // per_page if per_page > 0 else 1,
+            "stats": {
+                "total": total,
+                "correct": correct_count,
+                "accuracy": round((correct_count / total) * 100, 1) if total > 0 else 0
+            }
+        })
+
+    except Exception as e:
+        print(f"Error searching historical data: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route('/api/status')
 def api_status():
     """Get system status and last updated timestamp."""

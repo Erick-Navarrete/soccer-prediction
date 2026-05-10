@@ -1,431 +1,512 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soccer Predictions - AI Powered Football Analytics</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style-dark.css') }}" id="dark-mode-stylesheet" disabled>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soccer Predictions - AI Powered Football Analytics</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style-dark.css') }}" id="dark-mode-stylesheet" disabled>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <!-- Hamburger Menu Button (Hidden) -->
-    <button class="hamburger-menu hidden" id="hamburger-menu" onclick="toggleMobileMenu()">
-        <i class="fas fa-bars"></i>
-    </button>
+<!-- Hamburger Menu Button (Hidden) -->
+<button class="hamburger-menu hidden" id="hamburger-menu" onclick="toggleMobileMenu()">
+<i class="fas fa-bars"></i>
+</button>
 
-    <!-- Dark Mode Toggle -->
-    <button class="dark-mode-toggle" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
-        <i class="fas fa-moon"></i>
-    </button>
+<!-- Dark Mode Toggle -->
+<button class="dark-mode-toggle" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+<i class="fas fa-moon"></i>
+</button>
 
-    <!-- Mobile Navigation Menu -->
-    <div class="mobile-nav-menu" id="mobile-nav-menu">
-        <div class="mobile-nav-header">
-            <div class="nav-brand">
-                <i class="fas fa-futbol"></i>
-                <span>SoccerAI</span>
-            </div>
-            <button class="close-menu" onclick="toggleMobileMenu()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="mobile-nav-links">
-            <a href="#predictions" class="mobile-nav-link" data-section="predictions" onclick="toggleMobileMenu()">
-                <i class="fas fa-chart-line"></i> Predictions
-            </a>
-            <a href="#historical" class="mobile-nav-link" data-section="historical" onclick="toggleMobileMenu()">
-                <i class="fas fa-history"></i> Historical
-            </a>
-            <a href="#teams" class="mobile-nav-link" data-section="teams" onclick="toggleMobileMenu()">
-                <i class="fas fa-trophy"></i> Standings
-            </a>
-            <a href="#performance" class="mobile-nav-link" data-section="performance" onclick="toggleMobileMenu()">
-                <i class="fas fa-chart-bar"></i> Analytics
-            </a>
-        </div>
-    </div>
+<!-- Mobile Navigation Menu -->
+<div class="mobile-nav-menu" id="mobile-nav-menu">
+<div class="mobile-nav-header">
+<div class="nav-brand">
+<i class="fas fa-futbol"></i>
+<span>SoccerAI</span>
+</div>
+<button class="close-menu" onclick="toggleMobileMenu()">
+<i class="fas fa-times"></i>
+</button>
+</div>
+<div class="mobile-nav-links">
+<a href="#predictions" class="mobile-nav-link" data-section="predictions" onclick="toggleMobileMenu()">
+<i class="fas fa-chart-line"></i> Predictions
+</a>
+<a href="#historical" class="mobile-nav-link" data-section="historical" onclick="toggleMobileMenu()">
+<i class="fas fa-history"></i> Historical
+</a>
+<a href="#teams" class="mobile-nav-link" data-section="teams" onclick="toggleMobileMenu()">
+<i class="fas fa-trophy"></i> Standings
+</a>
+<a href="#performance" class="mobile-nav-link" data-section="performance" onclick="toggleMobileMenu()">
+<i class="fas fa-chart-bar"></i> Analytics
+</a>
+</div>
+</div>
 
-    <!-- Mobile Navigation Overlay -->
-    <div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="toggleMobileMenu()"></div>
+<!-- Mobile Navigation Overlay -->
+<div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="toggleMobileMenu()"></div>
 
-    <!-- Modern Navigation -->
-    <nav class="modern-nav">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <i class="fas fa-futbol"></i>
-                <span>SoccerAI</span>
-            </div>
-            <div class="nav-menu-left">
-                <a href="#predictions" class="nav-link active" data-section="predictions">
-                    <i class="fas fa-chart-line"></i> Predictions
-                </a>
-                <a href="#historical" class="nav-link" data-section="historical">
-                    <i class="fas fa-history"></i> Historical
-                </a>
-                <a href="#teams" class="nav-link" data-section="teams">
-                    <i class="fas fa-trophy"></i> Standings
-                </a>
-                <a href="#performance" class="nav-link" data-section="performance">
-                    <i class="fas fa-chart-bar"></i> Analytics
-                </a>
-            </div>
-            <div class="nav-stats">
-                <div class="stat-badge">
-                    <span class="stat-value" id="nav-accuracy">--%</span>
-                    <span class="stat-label">Accuracy</span>
-                </div>
-                <button class="modern-btn nav-update-btn" onclick="updateFromAPI()" title="Update from API">
-                    <i class="fas fa-cloud-download-alt"></i> Update
-                </button>
-            </div>
-        </div>
-    </nav>
+<!-- Modern Navigation -->
+<nav class="modern-nav">
+<div class="nav-container">
+<div class="nav-brand">
+<i class="fas fa-futbol"></i>
+<span>SoccerAI</span>
+</div>
+<div class="nav-menu-left">
+<a href="#predictions" class="nav-link active" data-section="predictions">
+<i class="fas fa-chart-line"></i> Predictions
+</a>
+<a href="#historical" class="nav-link" data-section="historical">
+<i class="fas fa-history"></i> Historical
+</a>
+<a href="#teams" class="nav-link" data-section="teams">
+<i class="fas fa-trophy"></i> Standings
+</a>
+<a href="#performance" class="nav-link" data-section="performance">
+<i class="fas fa-chart-bar"></i> Analytics
+</a>
+</div>
+<div class="nav-stats">
+<div class="stat-badge">
+<span class="stat-value" id="nav-accuracy">--%</span>
+<span class="stat-label">Accuracy</span>
+</div>
+<button class="modern-btn nav-update-btn" onclick="updateFromAPI()" title="Update from API">
+<i class="fas fa-cloud-download-alt"></i> Update
+</button>
+</div>
+</div>
+</nav>
 
-    <!-- Update Status Modal -->
-    <div class="modal" id="update-modal">
-        <div class="modal-content update-modal-content">
-            <div class="modal-header">
-                <h3 id="update-modal-title">Updating Predictions</h3>
-                <button class="modal-close" onclick="closeUpdateModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body" id="update-modal-body">
-                <div class="update-progress">
-                    <div class="update-spinner">
-                        <i class="fas fa-spinner fa-spin"></i>
-                    </div>
-                    <div class="update-status" id="update-status">
-                        <p>Initializing update process...</p>
-                    </div>
-                    <div class="update-steps" id="update-steps">
-                        <div class="update-step" id="step-1">
-                            <i class="fas fa-circle-notch fa-spin"></i>
-                            <span>Fetching data from APIs...</span>
-                        </div>
-                        <div class="update-step" id="step-2">
-                            <i class="far fa-circle"></i>
-                            <span>Processing predictions...</span>
-                        </div>
-                        <div class="update-step" id="step-3">
-                            <i class="far fa-circle"></i>
-                            <span>Updating model...</span>
-                        </div>
-                        <div class="update-step" id="step-4">
-                            <i class="far fa-circle"></i>
-                            <span>Refreshing interface...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- Update Status Modal -->
+<div class="modal" id="update-modal">
+<div class="modal-content update-modal-content">
+<div class="modal-header">
+<h3 id="update-modal-title">Updating Predictions</h3>
+<button class="modal-close" onclick="closeUpdateModal()">
+<i class="fas fa-times"></i>
+</button>
+</div>
+<div class="modal-body" id="update-modal-body">
+<div class="update-progress">
+<div class="update-spinner">
+<i class="fas fa-spinner fa-spin"></i>
+</div>
+<div class="update-status" id="update-status">
+<p>Initializing update process...</p>
+</div>
+<div class="update-steps" id="update-steps">
+<div class="update-step" id="step-1">
+<i class="fas fa-circle-notch fa-spin"></i>
+<span>Fetching data from APIs...</span>
+</div>
+<div class="update-step" id="step-2">
+<i class="far fa-circle"></i>
+<span>Processing predictions...</span>
+</div>
+<div class="update-step" id="step-3">
+<i class="far fa-circle"></i>
+<span>Updating model...</span>
+</div>
+<div class="update-step" id="step-4">
+<i class="far fa-circle"></i>
+<span>Refreshing interface...</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
 
-    <!-- Hero Section (Simplified) -->
-    <section class="hero-section">
-        <div class="hero-content">
-            <div class="hero-text">
-                <h1 class="hero-title">
-                    <span class="gradient-text">SoccerAI</span>
-                </h1>
-            </div>
-        </div>
-    </section>
+<!-- Hero Section (Simplified) -->
+<section class="hero-section">
+<div class="hero-content">
+<div class="hero-text">
+<h1 class="hero-title">
+<span class="gradient-text">SoccerAI</span>
+</h1>
+</div>
+</div>
+</section>
 
-    <!-- Insights Section -->
-    <section class="insights-section" id="insights-container">
-        <div class="section-header">
-            <h2 class="section-title">
-                <i class="fas fa-lightbulb"></i>
-                Season Insights
-            </h2>
-            <p class="section-subtitle">AI-powered analysis and key statistics</p>
-        </div>
-        <div class="insights-grid" id="insights-grid">
-            <div class="loading">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Loading insights...</p>
-            </div>
-        </div>
-    </section>
+<!-- Insights Section -->
+<section class="insights-section" id="insights-container">
+<div class="section-header">
+<h2 class="section-title">
+<i class="fas fa-lightbulb"></i>
+Season Insights
+</h2>
+<p class="section-subtitle">AI-powered analysis and key statistics</p>
+</div>
+<div class="insights-grid" id="insights-grid">
+<div class="loading">
+<i class="fas fa-spinner fa-spin"></i>
+<p>Loading insights...</p>
+</div>
+</div>
+</section>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Predictions Section -->
-        <section class="content-section active" id="predictions-section">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Match Predictions</h2>
-                    <p class="section-subtitle">Current season AI-powered predictions</p>
-                </div>
-                <button class="modern-btn" onclick="refreshPredictions()">
-                    <i class="fas fa-sync-alt"></i>
-                    Refresh
-                </button>
-            </div>
+<!-- Main Content -->
+<main class="main-content">
+<!-- Predictions Section -->
+<section class="content-section active" id="predictions-section">
+<div class="section-header">
+<div>
+<h2 class="section-title">Match Predictions</h2>
+<p class="section-subtitle">Current season AI-powered predictions</p>
+</div>
+<button class="modern-btn" onclick="refreshPredictions()">
+<i class="fas fa-sync-alt"></i> Refresh
+</button>
+</div>
 
-            <!-- Prediction Stats -->
-            <div class="historical-stats" id="prediction-stats">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-futbol"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Total Matches</h3>
-                        <p class="stat-value" id="pred-total">--</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>High Confidence</h3>
-                        <p class="stat-value" id="pred-high-confidence">--</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Home Wins</h3>
-                        <p class="stat-value" id="pred-home-wins">--</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-handshake"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Draws</h3>
-                        <p class="stat-value" id="pred-draws">--</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-plane"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Away Wins</h3>
-                        <p class="stat-value" id="pred-away-wins">--</p>
-                    </div>
-                </div>
-            </div>
+<!-- Prediction Stats -->
+<div class="historical-stats" id="prediction-stats">
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-futbol"></i></div>
+<div class="stat-info">
+<h3>Total Matches</h3>
+<p class="stat-value" id="pred-total">--</p>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+<div class="stat-info">
+<h3>High Confidence</h3>
+<p class="stat-value" id="pred-high-confidence">--</p>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-home"></i></div>
+<div class="stat-info">
+<h3>Home Wins</h3>
+<p class="stat-value" id="pred-home-wins">--</p>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-handshake"></i></div>
+<div class="stat-info">
+<h3>Draws</h3>
+<p class="stat-value" id="pred-draws">--</p>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-plane"></i></div>
+<div class="stat-info">
+<h3>Away Wins</h3>
+<p class="stat-value" id="pred-away-wins">--</p>
+</div>
+</div>
+</div>
 
-            <!-- Date Filter -->
-            <div class="date-filter-section">
-                <div class="filter-controls">
-                    <div class="filter-group">
-                        <label for="pred-date-from">From:</label>
-                        <input type="date" id="pred-date-from" class="filter-input">
-                    </div>
-                    <div class="filter-group">
-                        <label for="pred-date-to">To:</label>
-                        <input type="date" id="pred-date-to" class="filter-input">
-                    </div>
-                    <div class="filter-group">
-                        <label for="pred-confidence-filter">Min Confidence:</label>
-                        <select id="pred-confidence-filter" class="filter-select">
-                            <option value="0">All</option>
-                            <option value="50">50%+</option>
-                            <option value="60">60%+</option>
-                            <option value="70">70%+</option>
-                            <option value="80">80%+</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="pred-prediction-filter">Prediction:</label>
-                        <select id="pred-prediction-filter" class="filter-select">
-                            <option value="all">All</option>
-                            <option value="Home Win">Home Win</option>
-                            <option value="Draw">Draw</option>
-                            <option value="Away Win">Away Win</option>
-                        </select>
-                    </div>
-                    <button class="modern-btn" onclick="applyPredictionFilter()">
-                        <i class="fas fa-filter"></i> Filter
-                    </button>
-                    <button class="modern-btn secondary" onclick="clearPredictionFilter()">
-                        <i class="fas fa-times"></i> Clear
-                    </button>
-                </div>
-                <div class="filter-info" id="pred-filter-info">
-                    Showing all predictions
-                </div>
-            </div>
+<!-- Date Filter -->
+<div class="date-filter-section">
+<div class="filter-controls">
+<div class="filter-group">
+<label for="pred-date-from">From:</label>
+<input type="date" id="pred-date-from" class="filter-input">
+</div>
+<div class="filter-group">
+<label for="pred-date-to">To:</label>
+<input type="date" id="pred-date-to" class="filter-input">
+</div>
+<div class="filter-group">
+<label for="pred-confidence-filter">Min Confidence:</label>
+<select id="pred-confidence-filter" class="filter-select">
+<option value="0">All</option>
+<option value="50">50%+</option>
+<option value="60">60%+</option>
+<option value="70">70%+</option>
+<option value="80">80%+</option>
+</select>
+</div>
+<div class="filter-group">
+<label for="pred-prediction-filter">Prediction:</label>
+<select id="pred-prediction-filter" class="filter-select">
+<option value="all">All</option>
+<option value="Home Win">Home Win</option>
+<option value="Draw">Draw</option>
+<option value="Away Win">Away Win</option>
+</select>
+</div>
+<button class="modern-btn" onclick="applyPredictionFilter()">
+<i class="fas fa-filter"></i> Filter
+</button>
+<button class="modern-btn secondary" onclick="clearPredictionFilter()">
+<i class="fas fa-times"></i> Clear
+</button>
+</div>
+<div class="filter-info" id="pred-filter-info">Showing all predictions</div>
+</div>
 
-            <div class="predictions-grid" id="predictions-list">
-                <div class="loading">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Loading predictions...</p>
-                </div>
-            </div>
-        </section>
+<div class="predictions-grid" id="predictions-list">
+<div class="loading">
+<i class="fas fa-spinner fa-spin"></i>
+<p>Loading predictions...</p>
+</div>
+</div>
+</section>
 
-        <!-- Historical Section -->
-        <section class="content-section" id="historical-section">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Historical Accuracy</h2>
-                    <p class="section-subtitle">Track prediction performance over time</p>
-                </div>
-                <button class="modern-btn" onclick="updateHistorical()">
-                    <i class="fas fa-sync-alt"></i>
-                    Update
-                </button>
-            </div>
+<!-- Historical Section (Enhanced with search & pagination) -->
+<section class="content-section" id="historical-section">
+<div class="section-header">
+<div>
+<h2 class="section-title">Historical Accuracy</h2>
+<p class="section-subtitle">Track prediction performance over time</p>
+</div>
+<button class="modern-btn" onclick="updateHistorical()">
+<i class="fas fa-sync-alt"></i> Update
+</button>
+</div>
 
-            <div class="historical-stats" id="historical-stats">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-bullseye"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Accuracy</h3>
-                        <p class="stat-value" id="hist-accuracy">--%</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-database"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Total</h3>
-                        <p class="stat-value" id="hist-total">--</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Correct</h3>
-                        <p class="stat-value" id="hist-correct">--</p>
-                    </div>
-                </div>
-            </div>
+<div class="historical-stats" id="historical-stats">
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-bullseye"></i></div>
+<div class="stat-info">
+<h3>Accuracy</h3>
+<p class="stat-value" id="hist-accuracy">--%</p>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-database"></i></div>
+<div class="stat-info">
+<h3>Total</h3>
+<p class="stat-value" id="hist-total">--</p>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+<div class="stat-info">
+<h3>Correct</h3>
+<p class="stat-value" id="hist-correct">--</p>
+</div>
+</div>
+</div>
 
-            <!-- Date Filter -->
-            <div class="date-filter-section">
-                <div class="filter-controls">
-                    <div class="filter-group">
-                        <label for="date-from">From:</label>
-                        <input type="date" id="date-from" class="filter-input">
-                    </div>
-                    <div class="filter-group">
-                        <label for="date-to">To:</label>
-                        <input type="date" id="date-to" class="filter-input">
-                    </div>
-                    <div class="filter-group">
-                        <label for="date-group">Group By:</label>
-                        <select id="date-group" class="filter-select">
-                            <option value="none">No Grouping</option>
-                            <option value="day">Day</option>
-                            <option value="week">Week</option>
-                            <option value="month">Month</option>
-                        </select>
-                    </div>
-                    <button class="modern-btn" onclick="applyDateFilter()">
-                        <i class="fas fa-filter"></i> Filter
-                    </button>
-                    <button class="modern-btn secondary" onclick="clearDateFilter()">
-                        <i class="fas fa-times"></i> Clear
-                    </button>
-                </div>
-                <div class="filter-info" id="filter-info">
-                    Showing all matches
-                </div>
-            </div>
+<!-- Enhanced Search & Filter -->
+<div class="date-filter-section">
+<div class="filter-controls">
+<div class="filter-group" style="flex: 2; min-width: 200px;">
+<label for="hist-team-search">Team Search:</label>
+<input type="text" id="hist-team-search" class="filter-input" placeholder="Search team name..." onkeyup="debounceHistoricalSearch()">
+</div>
+<div class="filter-group">
+<label for="hist-result-filter">Result:</label>
+<select id="hist-result-filter" class="filter-select" onchange="searchHistorical()">
+<option value="">All Results</option>
+<option value="Home Win">Home Win</option>
+<option value="Draw">Draw</option>
+<option value="Away Win">Away Win</option>
+</select>
+</div>
+<div class="filter-group">
+<label for="hist-prediction-filter">Prediction:</label>
+<select id="hist-prediction-filter" class="filter-select" onchange="searchHistorical()">
+<option value="">All</option>
+<option value="Home Win">Home Win</option>
+<option value="Draw">Draw</option>
+<option value="Away Win">Away Win</option>
+</select>
+</div>
+<div class="filter-group">
+<label for="hist-conf-min">Min Conf:</label>
+<input type="number" id="hist-conf-min" class="filter-input" value="0" min="0" max="100" style="min-width:80px" onchange="searchHistorical()">
+</div>
+<div class="filter-group">
+<label for="hist-conf-max">Max Conf:</label>
+<input type="number" id="hist-conf-max" class="filter-input" value="100" min="0" max="100" style="min-width:80px" onchange="searchHistorical()">
+</div>
+</div>
+<div class="filter-controls" style="margin-top: 0.75rem;">
+<div class="filter-group">
+<label for="date-from">From:</label>
+<input type="date" id="date-from" class="filter-input" onchange="searchHistorical()">
+</div>
+<div class="filter-group">
+<label for="date-to">To:</label>
+<input type="date" id="date-to" class="filter-input" onchange="searchHistorical()">
+</div>
+<button class="modern-btn secondary" onclick="clearHistoricalSearch()">
+<i class="fas fa-times"></i> Clear Filters
+</button>
+</div>
+<div class="filter-info" id="filter-info">
+<i class="fas fa-list"></i> Showing all matches
+</div>
+</div>
 
-            <div class="historical-list" id="historical-list">
-                <div class="loading">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Loading historical data...</p>
-                </div>
-            </div>
-        </section>
+<!-- Historical search results with pagination -->
+<div class="historical-list" id="historical-list">
+<div class="loading">
+<i class="fas fa-spinner fa-spin"></i>
+<p>Loading historical data...</p>
+</div>
+</div>
+<!-- Pagination -->
+<div class="pagination" id="historical-pagination"></div>
+</section>
 
-        <!-- Teams Section -->
-        <section class="content-section" id="teams-section">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">League Standings</h2>
-                    <p class="section-subtitle">Current Premier League table</p>
-                </div>
-            </div>
+<!-- Teams Section -->
+<section class="content-section" id="teams-section">
+<div class="section-header">
+<div>
+<h2 class="section-title">League Standings</h2>
+<p class="section-subtitle">Current Premier League table</p>
+</div>
+</div>
+<div class="teams-grid" id="teams-list">
+<div class="loading">
+<i class="fas fa-spinner fa-spin"></i>
+<p>Loading standings...</p>
+</div>
+</div>
+</section>
 
-            <div class="teams-grid" id="teams-list">
-                <div class="loading">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Loading standings...</p>
-                </div>
-            </div>
-        </section>
+<!-- Performance Section (Enhanced with Charts) -->
+<section class="content-section" id="performance-section">
+<div class="section-header">
+<div>
+<h2 class="section-title">Analytics Dashboard</h2>
+<p class="section-subtitle">Interactive charts and season analytics</p>
+</div>
+<div class="table-controls">
+<button class="modern-btn" onclick="refreshChartData()">
+<i class="fas fa-sync-alt"></i> Refresh
+</button>
+</div>
+</div>
 
-        <!-- Performance Section -->
-        <section class="content-section" id="performance-section">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Historical Data Analytics</h2>
-                    <p class="section-subtitle">Complete Premier League 2025-2026 season data</p>
-                </div>
-                <div class="table-controls">
-                    <button class="modern-btn" onclick="refreshHistoricalData()">
-                        <i class="fas fa-sync-alt"></i> Refresh Data
-                    </button>
-                    <button class="modern-btn" onclick="exportTable()">
-                        <i class="fas fa-download"></i> Export CSV
-                    </button>
-                </div>
-            </div>
+<!-- Chart Grid -->
+<div class="charts-grid">
+<div class="chart-card">
+<div class="chart-header">
+<h3><i class="fas fa-chart-line"></i> Accuracy Over Time</h3>
+<p>Monthly prediction accuracy trend</p>
+</div>
+<div class="chart-container">
+<canvas id="accuracy-chart"></canvas>
+</div>
+</div>
 
-            <div class="data-table-container" id="data-table-container">
-                <div class="loading">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Loading historical data...</p>
-                </div>
-            </div>
-        </section>
-    </main>
+<div class="chart-card">
+<div class="chart-header">
+<h3><i class="fas fa-chart-pie"></i> Result Distribution</h3>
+<p>Breakdown of actual match outcomes</p>
+</div>
+<div class="chart-container chart-container-sm">
+<canvas id="distribution-chart"></canvas>
+</div>
+</div>
 
-    <!-- Footer -->
-    <footer class="modern-footer">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <i class="fas fa-futbol"></i>
-                <span>SoccerAI</span>
-            </div>
-            <div class="footer-links">
-                <a href="#predictions">Predictions</a>
-                <a href="#historical">Historical</a>
-                <a href="#teams">Standings</a>
-                <a href="#performance">Analytics</a>
-            </div>
-            <div class="footer-info">
-                <p>Last updated: <span id="last-updated">--</span></p>
-                <p>Powered by AI & Machine Learning</p>
-            </div>
-        </div>
-    </footer>
+<div class="chart-card">
+<div class="chart-header">
+<h3><i class="fas fa-bullseye"></i> Confidence Calibration</h3>
+<p>Accuracy by confidence bucket</p>
+</div>
+<div class="chart-container">
+<canvas id="calibration-chart"></canvas>
+</div>
+</div>
 
-    <!-- Match Detail Modal -->
-    <div class="modal" id="match-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-title">Match Details</h3>
-                <button class="modal-close" onclick="closeModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body" id="modal-body">
-                <!-- Match details will be loaded here -->
-            </div>
-        </div>
-    </div>
+<div class="chart-card">
+<div class="chart-header">
+<h3><i class="fas fa-trophy"></i> Top Teams by ELO</h3>
+<p>Current ELO ratings for top 10 teams</p>
+</div>
+<div class="chart-container">
+<canvas id="elo-chart"></canvas>
+</div>
+</div>
+</div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<!-- Historical Data Table (kept below charts) -->
+<div style="margin-top: 2rem;">
+<div class="section-header" style="margin-bottom: 1rem;">
+<div>
+<h2 class="section-title" style="font-size: 1.5rem;">Historical Data Table</h2>
+<p class="section-subtitle">Complete Premier League 2025-2026 season data</p>
+</div>
+<div class="table-controls">
+<button class="modern-btn" onclick="refreshHistoricalData()">
+<i class="fas fa-sync-alt"></i> Refresh Data
+</button>
+<button class="modern-btn" onclick="exportTable()">
+<i class="fas fa-download"></i> Export CSV
+</button>
+</div>
+</div>
+<div class="data-table-container" id="data-table-container">
+<div class="loading">
+<i class="fas fa-spinner fa-spin"></i>
+<p>Loading historical data...</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+
+<!-- Footer -->
+<footer class="modern-footer">
+<div class="footer-content">
+<div class="footer-brand">
+<i class="fas fa-futbol"></i>
+<span>SoccerAI</span>
+</div>
+<div class="footer-links">
+<a href="#predictions">Predictions</a>
+<a href="#historical">Historical</a>
+<a href="#teams">Standings</a>
+<a href="#performance">Analytics</a>
+</div>
+<div class="footer-info">
+<p>Last updated: <span id="last-updated">--</span></p>
+<p>Powered by AI & Machine Learning</p>
+</div>
+</div>
+</footer>
+
+<!-- Match Detail Modal (Enhanced) -->
+<div class="modal" id="match-modal">
+<div class="modal-content match-detail-modal">
+<div class="modal-header">
+<h3 id="modal-title">Match Details</h3>
+<button class="modal-close" onclick="closeModal()">
+<i class="fas fa-times"></i>
+</button>
+</div>
+<div class="modal-body" id="modal-body">
+<!-- Match details will be loaded here -->
+</div>
+</div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+// Hook chart loading and historical search into the existing load flow
+var _origLoadAll = loadAllData;
+loadAllData = async function() {
+  await _origLoadAll();
+  loadChartData();
+  searchHistorical();
+};
+
+var _origSwitch = switchSection;
+switchSection = function(sectionName) {
+  _origSwitch(sectionName);
+  if (sectionName === 'historical' && !document.getElementById('historical-list').querySelector('.prediction-card')) {
+    searchHistorical();
+  }
+  if (sectionName === 'performance') {
+    if (chartData) { renderAllCharts(); } else { loadChartData(); }
+  }
+};
+</script>
 </body>
 </html>

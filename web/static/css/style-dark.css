@@ -1200,3 +1200,56 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
+/* ===== Dark Mode: Charts & New Components ===== */
+.chart-card {
+  background: rgba(26, 26, 46, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.chart-header h3 {
+  color: #e0e0e0;
+}
+
+.chart-header p {
+  color: #a0a0a0;
+}
+
+.pagination button {
+  background: rgba(26, 26, 46, 0.9);
+  color: #a0a0a0;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.pagination button:hover {
+  color: #a78bfa;
+  border-color: #a78bfa;
+}
+
+.pagination button.active {
+  background: #a78bfa;
+  border-color: #a78bfa;
+  color: white;
+}
+
+.detail-elo-comparison {
+  background: rgba(26, 26, 46, 0.9);
+}
+
+.detail-elo-diff {
+  background: rgba(40, 40, 70, 0.9);
+  color: #a78bfa;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.detail-section-title {
+  color: #e0e0e0;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.detail-prob-bar .prob-track {
+  background: rgba(26, 26, 46, 0.9);
+}
+
+.detail-team-stats .stat-name {
+  color: #a0a0a0;
+}

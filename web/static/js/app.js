@@ -814,7 +814,7 @@ function renderPredictions() {
             <div class="probabilities">
                 <div class="prob-item">
                     <div class="prob-label">Home Win</div>
-                    <div class="prob-value prob-home">${pred.home_win_prob}%</div>
+                    <div class="prob-value prob-home">${pred.home_win_prob || pred.home_prob || 0}%</div>
                 </div>
                 <div class="prob-item">
                     <div class="prob-label">Draw</div>
@@ -822,7 +822,7 @@ function renderPredictions() {
                 </div>
                 <div class="prob-item">
                     <div class="prob-label">Away Win</div>
-                    <div class="prob-value prob-away">${pred.away_win_prob}%</div>
+                    <div class="prob-value prob-away">${pred.away_win_prob || pred.away_prob || 0}%</div>
                 </div>
             </div>
 
@@ -1058,7 +1058,7 @@ function renderHistorical() {
     }
 
     // Group by date if selected
-    const groupBy = document.getElementById('date-group').value;
+    const groupByEl = document.getElementById('date-group'); const groupBy = groupByEl ? groupByEl.value : 'none';
     let groupedData = filteredHistorical;
 
     if (groupBy !== 'none') {
@@ -1151,7 +1151,7 @@ function renderHistoricalCard(pred) {
             </div>
 
             <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
-                Confidence: ${pred.confidence}% | Importance: ${pred.importance}
+                Confidence: ${pred.confidence}%
             </div>
         </div>
     `;
