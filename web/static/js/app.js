@@ -981,16 +981,16 @@ function getRankGradient(rank) {
 // Render Performance
 function renderPerformance() {
     if (performance.accuracy) {
-        document.getElementById('perf-accuracy').textContent = `${performance.accuracy}%`;
+        (document.getElementById('perf-accuracy') || {}).textContent = `${performance.accuracy}%`;
     }
     if (performance.log_loss) {
-        document.getElementById('perf-logloss').textContent = performance.log_loss.toFixed(3);
+        (document.getElementById('perf-logloss') || {}).textContent = performance.log_loss.toFixed(3);
     }
     if (performance.total_predictions) {
-        document.getElementById('perf-total').textContent = performance.total_predictions.toLocaleString();
+        (document.getElementById('perf-total') || {}).textContent = performance.total_predictions.toLocaleString();
     }
     if (performance.last_updated) {
-        document.getElementById('perf-updated').textContent = performance.last_updated;
+        (document.getElementById('perf-updated') || {}).textContent = performance.last_updated;
     }
 
     // Update performance cards with enhanced data
@@ -1035,15 +1035,15 @@ function renderPerformance() {
 function updateHeaderStats(count) {
     if (performance.accuracy) {
         document.getElementById('nav-accuracy').textContent = `${performance.accuracy}%`;
-        document.getElementById('hero-accuracy').textContent = `${performance.accuracy}%`;
+        (document.getElementById('hero-accuracy') || {}).textContent = `${performance.accuracy}%`;
     }
     if (performance.total_matches) {
-        document.getElementById('hero-matches').textContent = performance.total_matches;
+        (document.getElementById('hero-matches') || {}).textContent = performance.total_matches;
     } else {
-        document.getElementById('hero-matches').textContent = count;
+        (document.getElementById('hero-matches') || {}).textContent = count;
     }
     if (teams.length > 0) {
-        document.getElementById('hero-teams').textContent = teams.length;
+        (document.getElementById('hero-teams') || {}).textContent = teams.length;
     }
 }
 
@@ -1226,7 +1226,7 @@ function applyDateFilter() {
 function clearDateFilter() {
     document.getElementById('date-from').value = '';
     document.getElementById('date-to').value = '';
-    document.getElementById('date-group').value = 'none';
+    var dg = document.getElementById('date-group'); if (dg) dg.value = 'none';
     renderHistorical();
 }
 
@@ -1337,64 +1337,6 @@ document.getElementById('match-modal').addEventListener('click', function(e) {
         closeModal();
     }
 });
-
-// Refresh Predictions
-async function refreshPredictions() {
-    const btn = document.querySelector('.btn-refresh');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-    btn.disabled = true;
-
-    try {
-        await loadAllData();
-        btn.innerHTML = '<i class="fas fa-check"></i> Refreshed!';
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
-            btn.disabled = false;
-        }, 2000);
-    } catch (error) {
-        console.error('Error refreshing:', error);
-        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
-            btn.disabled = false;
-        }, 2000);
-    }
-}
-
-// Update Historical Predictions
-async function updateHistorical() {
-    const btn = document.querySelector('#historical-tab .btn-refresh');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-    btn.disabled = true;
-
-    try {
-        const response = await fetch(`${API_BASE}/historical/update`);
-        const result = await response.json();
-
-        if (result.success) {
-            await loadHistorical();
-            await loadHistoricalStats();
-            btn.innerHTML = '<i class="fas fa-check"></i> Updated!';
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
-                btn.disabled = false;
-            }, 2000);
-        } else {
-            btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
-                btn.disabled = false;
-            }, 2000);
-        }
-    } catch (error) {
-        console.error('Error updating historical:', error);
-        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Update';
-            btn.disabled = false;
-        }, 2000);
-    }
-}
 
 // Show Error Message
 function showErrorMessage(containerId, message) {
