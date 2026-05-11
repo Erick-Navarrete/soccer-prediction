@@ -2,6 +2,48 @@
 let charts = {};
 let chartData = null;
 
+
+// Mobile chart rendering fix
+function getChartOptions(isSmall) {
+  var isMobile = window.innerWidth <= 768;
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    devicePixelRatio: isMobile ? 1 : window.devicePixelRatio || 1,
+    interaction: {
+      intersect: false,
+      mode: 'index'
+    },
+    plugins: {
+      legend: {
+        position: isMobile ? 'bottom' : 'top',
+        labels: {
+          boxWidth: isMobile ? 10 : 40,
+          font: { size: isMobile ? 10 : 12 }
+        }
+      },
+      tooltip: {
+        enabled: true,
+        mode: 'nearest'
+      }
+    },
+    animation: {
+      duration: isMobile ? 200 : 750
+    }
+  };
+}
+
+function renderChartIfVisible(ctx, config) {
+  if (!ctx) return null;
+  var rect = ctx.getBoundingClientRect();
+  if (rect.width < 10 || rect.height < 10) {
+    ctx.style.height = (window.innerWidth <= 480 ? '180px' : window.innerWidth <= 768 ? '220px' : '280px');
+    ctx.style.width = '100%';
+  }
+  return new Chart(ctx, config);
+}
+
+
 async function loadChartData() {
   try {
     const response = await fetch(`${API_BASE}/chart-data`);
@@ -34,6 +76,7 @@ function renderAccuracyChart() {
   if (charts.accuracy) charts.accuracy.destroy();
 
   const data = chartData.accuracy_over_time;
+  var isMobile = window.innerWidth <= 768;
   charts.accuracy = new Chart(ctx, {
     type: 'line',
     data: {
@@ -46,8 +89,9 @@ function renderAccuracyChart() {
         fill: true,
         tension: 0.4,
         pointBackgroundColor: '#6366f1',
-        pointRadius: 4,
-        pointHoverRadius: 6
+        pointRadius: isMobile ? 2 : 4,
+        pointHoverRadius: 6,
+        borderWidth: isMobile ? 2 : 3
       }, {
         label: 'Matches',
         data: data.map(d => d.total),
@@ -55,18 +99,24 @@ function renderAccuracyChart() {
         backgroundColor: 'rgba(139, 92, 246, 0.1)',
         fill: false,
         tension: 0.4,
-        pointRadius: 3,
-        yAxisID: 'y1'
+        pointRadius: isMobile ? 1 : 3,
+        yAxisID: 'y1',
+        borderWidth: isMobile ? 1.5 : 2
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      devicePixelRatio: isMobile ? 1 : (window.devicePixelRatio || 1),
+      animation: { duration: isMobile ? 200 : 750 },
       interaction: { intersect: false, mode: 'index' },
-      plugins: { legend: { position: 'top' } },
+      plugins: {
+        legend: { position: isMobile ? 'bottom' : 'top', labels: { boxWidth: isMobile ? 10 : 40, font: { size: isMobile ? 10 : 12 } } }
+      },
       scales: {
-        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Accuracy %' } },
-        y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Matches' }, grid: { drawOnChartArea: false } }
+        y: { beginAtZero: true, max: 100, title: { display: !isMobile, text: 'Accuracy %' }, ticks: { font: { size: isMobile ? 9 : 11 } } },
+        y1: { position: 'right', beginAtZero: true, title: { display: !isMobile, text: 'Matches' }, grid: { drawOnChartArea: false }, ticks: { font: { size: isMobile ? 9 : 11 } } },
+        x: { ticks: { font: { size: isMobile ? 9 : 11 } } }
       }
     }
   });
@@ -79,6 +129,7 @@ function renderDistributionChart() {
   if (charts.distribution) charts.distribution.destroy();
 
   const dist = chartData.prediction_distribution;
+  var isMobile = window.innerWidth <= 768;
   charts.distribution = new Chart(ctx, {
     type: 'doughnut',
     data: {
@@ -86,15 +137,17 @@ function renderDistributionChart() {
       datasets: [{
         data: [dist.home_wins, dist.draws, dist.away_wins],
         backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-        borderWidth: 2,
+        borderWidth: isMobile ? 1 : 2,
         borderColor: '#fff'
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      devicePixelRatio: isMobile ? 1 : (window.devicePixelRatio || 1),
+      animation: { duration: isMobile ? 200 : 750 },
       plugins: {
-        legend: { position: 'bottom' },
+        legend: { position: 'bottom', labels: { boxWidth: isMobile ? 10 : 40, padding: isMobile ? 10 : 20, font: { size: isMobile ? 10 : 12 } } },
         tooltip: {
           callbacks: {
             label: function(ctx) {
@@ -116,6 +169,7 @@ function renderCalibrationChart() {
   if (charts.calibration) charts.calibration.destroy();
 
   const cal = chartData.confidence_calibration;
+  var isMobile = window.innerWidth <= 768;
   charts.calibration = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -124,12 +178,15 @@ function renderCalibrationChart() {
         label: 'Actual Accuracy %',
         data: cal.map(d => d.accuracy),
         backgroundColor: cal.map(d => d.accuracy >= 60 ? 'rgba(16, 185, 129, 0.8)' : d.accuracy >= 40 ? 'rgba(245, 158, 11, 0.8)' : 'rgba(239, 68, 68, 0.8)'),
-        borderRadius: 6
+        borderRadius: isMobile ? 4 : 6,
+        borderWidth: 0
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      devicePixelRatio: isMobile ? 1 : (window.devicePixelRatio || 1),
+      animation: { duration: isMobile ? 200 : 750 },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -142,8 +199,8 @@ function renderCalibrationChart() {
         }
       },
       scales: {
-        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Accuracy %' } },
-        x: { title: { display: true, text: 'Confidence Bucket' } }
+        y: { beginAtZero: true, max: 100, title: { display: !isMobile, text: 'Accuracy %' }, ticks: { font: { size: isMobile ? 9 : 11 } } },
+        x: { title: { display: !isMobile, text: 'Confidence Bucket' }, ticks: { font: { size: isMobile ? 8 : 11 } } }
       }
     }
   });
@@ -157,6 +214,7 @@ function renderEloChart() {
 
   const teams = chartData.top_teams_elo;
   const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6', '#6366f1', '#f59e0b', '#ef4444'];
+  var isMobile = window.innerWidth <= 768;
   charts.elo = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -165,16 +223,20 @@ function renderEloChart() {
         label: 'ELO Rating',
         data: teams.map(t => t.elo),
         backgroundColor: teams.map((_, i) => colors[i % colors.length] + 'cc'),
-        borderRadius: 6
+        borderRadius: isMobile ? 4 : 6,
+        borderWidth: 0
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      devicePixelRatio: isMobile ? 1 : (window.devicePixelRatio || 1),
+      animation: { duration: isMobile ? 200 : 750 },
       indexAxis: 'y',
       plugins: { legend: { display: false } },
       scales: {
-        x: { title: { display: true, text: 'ELO Rating' } }
+        x: { title: { display: !isMobile, text: 'ELO Rating' }, ticks: { font: { size: isMobile ? 9 : 11 } } },
+        y: { ticks: { font: { size: isMobile ? 9 : 11 } } }
       }
     }
   });
@@ -463,3 +525,13 @@ function renderFormDots(formStr) {
   html += '</div>';
   return html;
 }
+
+
+// Re-render charts on resize/orientation change
+var chartResizeTimer = null;
+window.addEventListener('resize', function() {
+  clearTimeout(chartResizeTimer);
+  chartResizeTimer = setTimeout(function() {
+    if (chartData) renderAllCharts();
+  }, 250);
+});

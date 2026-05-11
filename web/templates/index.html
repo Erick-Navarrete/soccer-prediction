@@ -11,8 +11,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-<!-- Hamburger Menu Button (Hidden) -->
-<button class="hamburger-menu hidden" id="hamburger-menu" onclick="toggleMobileMenu()">
+<!-- Hamburger Menu Button -->
+<button class="hamburger-menu" id="hamburger-menu" onclick="toggleMobileMenu()">
 <i class="fas fa-bars"></i>
 </button>
 
@@ -488,6 +488,29 @@ Season Insights
 
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+
+<!-- Mobile Bottom Tab Bar -->
+<nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+<div class="bottom-nav-items">
+<a class="bottom-nav-item active" data-section="predictions" onclick="switchSection('predictions')">
+<i class="fas fa-chart-line"></i>
+<span>Predictions</span>
+</a>
+<a class="bottom-nav-item" data-section="historical" onclick="switchSection('historical')">
+<i class="fas fa-history"></i>
+<span>Historical</span>
+</a>
+<a class="bottom-nav-item" data-section="teams" onclick="switchSection('teams')">
+<i class="fas fa-trophy"></i>
+<span>Standings</span>
+</a>
+<a class="bottom-nav-item" data-section="performance" onclick="switchSection('performance')">
+<i class="fas fa-chart-bar"></i>
+<span>Analytics</span>
+</a>
+</div>
+</nav>
+
 <script>
 // Hook chart loading and historical search into the existing load flow
 var _origLoadAll = loadAllData;

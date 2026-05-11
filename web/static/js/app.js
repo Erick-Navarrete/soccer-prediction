@@ -50,12 +50,46 @@ function initializeTabs() {
 }
 
 function switchSection(sectionName) {
-    // Update nav links
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('data-section') === sectionName) {
-            link.classList.add('active');
-        }
+  // Update top nav links
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('data-section') === sectionName) {
+      link.classList.add('active');
+    }
+  });
+
+  // Update bottom tab bar
+  document.querySelectorAll('.bottom-nav-item').forEach(item => {
+    item.classList.remove('active');
+    if (item.getAttribute('data-section') === sectionName) {
+      item.classList.add('active');
+    }
+  });
+
+  // Update mobile sidebar nav links
+  document.querySelectorAll('.mobile-nav-link').forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('data-section') === sectionName) {
+      link.classList.add('active');
+    }
+  });
+
+  // Update sections
+  document.querySelectorAll('.content-section').forEach(section => {
+    section.classList.remove('active');
+    if (section.id === `${sectionName}-section`) {
+      section.classList.add('active');
+    }
+  });
+
+  currentTab = sectionName;
+
+  // Scroll to top of content area on mobile
+  var mainContent = document.querySelector('.main-content');
+  if (mainContent && window.innerWidth <= 768) {
+    mainContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
     });
 
     // Update sections
