@@ -28,6 +28,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-s
 /* Header */
 .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--surface); border-bottom: 2px solid var(--primary); }
 .header h1 { font-size: 20px; font-weight: 700; color: var(--primary); }
+.header h1 .badge { font-size: 10px; font-weight: 600; background: var(--primary-bg); color: var(--primary); padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
 .header-actions { display: flex; gap: 8px; align-items: center; }
 .btn-icon { width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
 .btn-icon:hover { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); }
@@ -93,7 +94,7 @@ footer { text-align: center; padding: 12px; font-size: 11px; color: var(--text4)
 <body>
 
 <div class="header">
-  <h1>SoccerAI - Premier League 2025-26</h1>
+  <h1>SoccerAI - Premier League 2025-26 <span class="badge">ML+ELO</span></h1>
   <div class="header-actions">
     <button class="btn-icon" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode">&#9790;</button>
     <button class="btn-refresh" id="refresh-btn" onclick="refreshData()">Update Now</button>
@@ -111,7 +112,7 @@ footer { text-align: center; padding: 12px; font-size: 11px; color: var(--text4)
 
 <div class="section active" id="predictions">
 <div class="table-wrap"><table id="pred-table"><thead><tr>
-<th data-key="date">Date</th><th data-key="home_team">Home</th><th data-key="away_team">Away</th><th data-key="prediction">Prediction</th><th data-key="confidence" data-type="num">Confidence</th><th data-key="home_win_prob" data-type="num">Home%</th><th data-key="draw_prob" data-type="num">Draw%</th><th data-key="away_win_prob" data-type="num">Away%</th><th>Result</th><th>Score</th>
+<th data-key="date">Date</th><th data-key="home_team">Home</th><th data-key="away_team">Away</th><th data-key="prediction">Prediction</th><th data-key="confidence" data-type="num">Confidence</th><th data-key="home_win_prob" data-type="num">Home%</th><th data-key="draw_prob" data-type="num">Draw%</th><th data-key="away_win_prob" data-type="num">Away%</th><th data-key="elo_diff" data-type="num">ELO Diff</th><th>Result</th><th>Score</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
@@ -148,7 +149,7 @@ footer { text-align: center; padding: 12px; font-size: 11px; color: var(--text4)
 
 <div class="toast" id="toast"></div>
 
-<footer>SoccerAI &middot; Data updated <span id="last-updated">-</span></footer>
+<footer>SoccerAI &middot; ML+ELO Ensemble &middot; Data updated <span id="last-updated">-</span></footer>
 
 <script>
 var predictions = [];
@@ -285,6 +286,7 @@ function predictionRow(p) {
     + '<td>' + (p.home_win_prob || p.home_prob || 0) + '</td>'
     + '<td>' + (p.draw_prob || 0) + '</td>'
     + '<td>' + (p.away_win_prob || p.away_prob || 0) + '</td>'
+ + '<td style="color:' + ((p.elo_diff||0) > 100 ? 'var(--tag-home-fg)' : (p.elo_diff||0) < -100 ? 'var(--tag-away-fg)' : 'var(--text3)') + '">' + ((p.elo_diff||0) > 0 ? '+' : '') + (p.elo_diff || 0) + '</td>'
     + '<td>' + result + '</td>'
     + '<td>' + score + '</td>'
     + '</tr>';
