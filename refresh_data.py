@@ -1,8 +1,8 @@
 """Refresh soccer prediction data from free sources.
 
 Fetches latest PL results from football-data.co.uk CSVs,
-upcoming fixtures from TheSportsDB, generates ML+ELO blended predictions,
-and updates all JSON data files.
+upcoming fixtures from football-data.org/TheSportsDB, generates ML+ELO
+blended predictions, and updates all JSON data files.
 """
 
 import json
@@ -51,6 +51,11 @@ TEAM_NAME_MAP = {
     "Wolverhampton Wanderers": "Wolves",
     "Wolves": "Wolves",
     "Sunderland": "Sunderland",
+    "Ipswich Town": "Ipswich",
+    "Ipswich": "Ipswich",
+    "Leicester City": "Leicester",
+    "Leicester": "Leicester",
+    "Southampton": "Southampton",
 }
 
 # Reverse map: our name -> football-data.co.uk CSV name
@@ -75,6 +80,9 @@ CSV_NAME_MAP = {
     "West Ham": "West Ham",
     "Wolves": "Wolves",
     "Sunderland": "Sunderland",
+    "Ipswich": "Ipswich",
+    "Leicester": "Leicester",
+    "Southampton": "Southampton",
 }
 
 
@@ -94,7 +102,7 @@ def save_json(name, data):
     p = DATA_DIR / f"{name}.json"
     with open(p, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-    print(f"  Updated {name}.json ({len(data) if isinstance(data, list) else 'dict'})")
+    print(f" Updated {name}.json ({len(data) if isinstance(data, list) else 'dict'})")
 
 
 def fetch_csv_results():
@@ -130,7 +138,6 @@ def fetch_csv_results():
             "home_goals": int(fthg) if fthg else None,
             "away_goals": int(ftag) if ftag else None,
             "ftr": ftr,  # H/D/A
-        # Betting odds if available
             "b365h": row.get("B365H", "").strip() or None,
             "b365d": row.get("B365D", "").strip() or None,
             "b365a": row.get("B365A", "").strip() or None,
@@ -141,8 +148,11 @@ def fetch_csv_results():
 
         matches.append(match)
 
-    print(f"  Found {len(matches)} matches from CSV")
+    print(f" Found {len(matches)} matches from CSV")
     return matches
+
+
+ROOT_DIR = Path(__file__).parent
 
 
 def _load_env_key(key_name):
@@ -199,82 +209,81 @@ def fetch_upcoming_fixtures():
                         "away_team": away,
                         "venue": venue,
                     })
-                print(f"  Found {len(all_fixtures)} fixtures from football-data.org")
+                print(f" Found {len(all_fixtures)} fixtures from football-data.org")
             else:
-                print(f"  football-data.org returned {r.status_code}, falling back to TheSportsDB")
+                print(f" football-data.org returned {r.status_code}, falling back to TheSportsDB")
         except Exception as e:
-            print(f"  football-data.org failed ({e}), falling back to TheSportsDB")
+            print(f" football-data.org failed ({e}), falling back to TheSportsDB")
 
     # Fallback: TheSportsDB (free, no key needed)
     if not all_fixtures:
         print("Fetching upcoming fixtures from TheSportsDB...")
-    all_fixtures = []
-    seen = set()
+        all_fixtures = []
+        seen = set()
 
-    for rnd in range(31, 39):
-        url = f"https://www.thesportsdb.com/api/v1/json/3/eventsround.php?id=4328&r={rnd}&s=2025-2026"
+        for rnd in range(31, 39):
+            url = f"https://www.thesportsdb.com/api/v1/json/3/eventsround.php?id=4328&r={rnd}&s=2025-2026"
+            try:
+                r = requests.get(url, timeout=10)
+                if r.status_code != 200:
+                    continue
+
+                data = r.json()
+                events = data.get("events") or []
+
+                for ev in events:
+                    if ev.get("intHomeScore") is not None:
+                        continue
+
+                    home = normalize_team(ev.get("strHomeTeam", ""))
+                    away = normalize_team(ev.get("strAwayTeam", ""))
+                    date_str = ev.get("dateEvent", "")
+                    time_str = ev.get("strTime", "") or "15:00"
+                    key = f"{date_str}|{home}|{away}"
+
+                    if key in seen:
+                        continue
+                    seen.add(key)
+
+                    all_fixtures.append({
+                        "round": rnd,
+                        "date": date_str,
+                        "time": time_str[:5] if len(time_str) >= 5 else "15:00",
+                        "home_team": home,
+                        "away_team": away,
+                        "venue": ev.get("strVenue", "Unknown Stadium"),
+                    })
+            except Exception as e:
+                print(f" Warning: round {rnd} fetch failed: {e}")
+
+        # Also fetch from next events endpoint
         try:
+            url = "https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4328"
             r = requests.get(url, timeout=10)
-            if r.status_code != 200:
-                continue
+            if r.status_code == 200:
+                data = r.json()
+                for ev in (data.get("events") or []):
+                    if ev.get("intHomeScore") is not None:
+                        continue
+                    home = normalize_team(ev.get("strHomeTeam", ""))
+                    away = normalize_team(ev.get("strAwayTeam", ""))
+                    date_str = ev.get("dateEvent", "")
+                    key = f"{date_str}|{home}|{away}"
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    all_fixtures.append({
+                        "round": int(ev.get("intRound", 0)),
+                        "date": date_str,
+                        "time": "15:00",
+                        "home_team": home,
+                        "away_team": away,
+                        "venue": ev.get("strVenue", "Unknown Stadium"),
+                    })
+        except Exception:
+            pass
 
-            data = r.json()
-            events = data.get("events") or []
-
-            for ev in events:
-                # Skip already played matches
-                if ev.get("intHomeScore") is not None:
-                    continue
-
-                home = normalize_team(ev.get("strHomeTeam", ""))
-                away = normalize_team(ev.get("strAwayTeam", ""))
-                date_str = ev.get("dateEvent", "")
-                time_str = ev.get("strTime", "") or "15:00"
-                key = f"{date_str}|{home}|{away}"
-
-                if key in seen:
-                    continue
-                seen.add(key)
-
-                all_fixtures.append({
-                    "round": rnd,
-                    "date": date_str,
-                    "time": time_str[:5] if len(time_str) >= 5 else "15:00",
-                    "home_team": home,
-                    "away_team": away,
-                    "venue": ev.get("strVenue", "Unknown Stadium"),
-                })
-        except Exception as e:
-            print(f"  Warning: round {rnd} fetch failed: {e}")
-
-    # Also fetch from next events endpoint
-    try:
-        url = "https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4328"
-        r = requests.get(url, timeout=10)
-        if r.status_code == 200:
-            data = r.json()
-            for ev in (data.get("events") or []):
-                if ev.get("intHomeScore") is not None:
-                    continue
-                home = normalize_team(ev.get("strHomeTeam", ""))
-                away = normalize_team(ev.get("strAwayTeam", ""))
-                date_str = ev.get("dateEvent", "")
-                key = f"{date_str}|{home}|{away}"
-                if key in seen:
-                    continue
-                seen.add(key)
-                all_fixtures.append({
-                    "round": int(ev.get("intRound", 0)),
-                    "date": date_str,
-                    "time": "15:00",
-                    "home_team": home,
-                    "away_team": away,
-                    "venue": ev.get("strVenue", "Unknown Stadium"),
-                })
-    except Exception:
-        pass
-
-    print(f"  Found {len(all_fixtures)} upcoming fixtures")
+    print(f" Found {len(all_fixtures)} upcoming fixtures")
     return all_fixtures
 
 
@@ -286,7 +295,6 @@ def elo_predict(home_elo, away_elo, home_advantage=HOME_ADVANTAGE):
 
     e_home = 1.0 / (1.0 + 10 ** ((r_away - r_home) / 400.0))
 
-    # Draw probability peaks when teams are equal (~24%), drops as gap grows
     draw_prob = max(12.0, 24.0 - abs(elo_diff) * 0.06)
     draw_prob = round(draw_prob, 1)
 
@@ -294,7 +302,6 @@ def elo_predict(home_elo, away_elo, home_advantage=HOME_ADVANTAGE):
     home_win_prob = round(remaining * e_home, 1)
     away_win_prob = round(100.0 - home_win_prob - draw_prob, 1)
 
-    # Pick outcome
     if home_win_prob >= draw_prob and home_win_prob >= away_win_prob:
         prediction, prediction_code = "Home Win", 2
     elif away_win_prob >= draw_prob:
@@ -316,25 +323,23 @@ def elo_predict(home_elo, away_elo, home_advantage=HOME_ADVANTAGE):
     }
 
 
-ROOT_DIR = Path(__file__).parent
-
-
 def ml_predict_upcoming(upcoming_fixtures):
     """Use the ML ensemble model to predict upcoming fixtures.
 
-    Loads 2 seasons of historical data, appends upcoming fixtures,
-    runs the full feature engineering pipeline, then predicts.
+    Strategy: compute features from historical matches, then for each
+    upcoming fixture, look up the most recent per-team rolling stats
+    and construct feature rows without append-and-dropna hacks.
+
     Returns dict mapping (home, away, date) -> ML prediction result.
     """
     try:
         from src.data_loader import FootballDataLoader
         from src.feature_engineering import (
             FeatureEngineer, FootballELO,
-            compute_xg_proxy, compute_fatigue_features,
-            compute_h2h_features, add_odds_features,
+            compute_fatigue_features, compute_h2h_features,
         )
     except ImportError as e:
-        print(f"  Warning: ML modules unavailable ({e}), using ELO only")
+        print(f" Warning: ML modules unavailable ({e}), using ELO only")
         return {}
 
     model_path = ROOT_DIR / "outputs" / "ensemble_model.pkl"
@@ -342,24 +347,24 @@ def ml_predict_upcoming(upcoming_fixtures):
     feat_path = ROOT_DIR / "outputs" / "feature_names.pkl"
 
     if not model_path.exists() or not scaler_path.exists() or not feat_path.exists():
-        print("  Warning: ML model files not found, using ELO only")
+        print(" Warning: ML model files not found, using ELO only")
         return {}
 
-    print("  Loading ML ensemble model...")
+    print(" Loading ML ensemble model...")
     model = pickle.load(open(model_path, "rb"))
     scaler = pickle.load(open(scaler_path, "rb"))
     feat_names = pickle.load(open(feat_path, "rb"))
 
-    # Load historical data (2 seasons)
-    loader = FootballDataLoader(seasons=["2526", "2425"], leagues=["E0"])
+    # Load historical data (3 seasons for richer stats)
+    print(" Loading historical data for feature computation...")
+    loader = FootballDataLoader(seasons=["2526", "2425", "2324"], leagues=["E0"])
     raw = loader.load_all()
     df = raw.copy()
     df["Date"] = pd.to_datetime(df["Date"], dayfirst=True, errors="coerce")
     df = df.dropna(subset=["Date"])
 
-    # Numeric coercion
-    num_cols = ["FTHG","FTAG","HTHG","HTAG","HS","AS","HST","AST",
-                "HF","AF","HC","AC","HY","AY","HR","AR","B365H","B365D","B365A"]
+    num_cols = ["FTHG", "FTAG", "HTHG", "HTAG", "HS", "AS", "HST", "AST",
+                "HF", "AF", "HC", "AC", "HY", "AY", "HR", "AR"]
     for c in num_cols:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce")
@@ -367,65 +372,148 @@ def ml_predict_upcoming(upcoming_fixtures):
     result_map = {"H": 2, "D": 1, "A": 0}
     df["Result"] = df["FTR"].map(result_map)
 
-    # Append upcoming fixtures as placeholder rows
-    csv_name_map = CSV_NAME_MAP
-    for fx in upcoming_fixtures:
-        row = {col: np.nan for col in df.columns}
-        row["Date"] = pd.Timestamp(fx["date"])
-        row["HomeTeam"] = csv_name_map.get(fx["home_team"], fx["home_team"])
-        row["AwayTeam"] = csv_name_map.get(fx["away_team"], fx["away_team"])
-        row["League"] = "Premier League"
-        row["Season"] = "2526"
-        df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+    # Only use historical (played) matches for feature computation
+    hist = df[df["Result"].notna()].copy()
+    hist = hist.sort_values("Date").reset_index(drop=True)
 
-    df = df.sort_values("Date").reset_index(drop=True)
-
-    # Run full feature pipeline
-    print("  Computing features for ML predictions...")
+    # Build features on historical data
+    print(" Computing features from historical matches...")
     fe = FeatureEngineer(window=5)
-    featured = fe.build_match_features(df)
+    featured = fe.build_match_features(hist)
+
     elo_sys = FootballELO(k=32, home_advantage=65)
     featured = elo_sys.compute_elo_features(featured)
-    featured = compute_xg_proxy(featured)
     featured = compute_fatigue_features(featured)
     featured = compute_h2h_features(featured)
-    featured = add_odds_features(featured)
 
-    # Predict on upcoming (Result is NaN)
-    upcoming_rows = featured[featured["Result"].isna()]
-    if upcoming_rows.empty:
-        return {}
+    # Build lookup: team -> most recent row's stats
+    # For each team, get the latest match they played (home or away)
+    # and extract their rolling averages from that row
+    team_home_stats = {}
+    team_away_stats = {}
 
-    X = upcoming_rows[feat_names].fillna(featured[feat_names].median())
-    X_scaled = scaler.transform(X)
-    preds = model.predict(X_scaled)
-    probs = model.predict_proba(X_scaled)
+    for team in set(hist["HomeTeam"].unique()) | set(hist["AwayTeam"].unique()):
+        # Latest home match for this team
+        home_rows = featured[featured["HomeTeam"] == team].sort_values("Date")
+        if not home_rows.empty:
+            team_home_stats[team] = home_rows.iloc[-1]
+        # Latest away match
+        away_rows = featured[featured["AwayTeam"] == team].sort_values("Date")
+        if not away_rows.empty:
+            team_away_stats[team] = away_rows.iloc[-1]
 
+    # Median values for fallback
+    medians = featured[feat_names].median()
+
+    # Predict each upcoming fixture
     label = {0: "Away Win", 1: "Draw", 2: "Home Win"}
     results = {}
-    for i, (idx, row) in enumerate(upcoming_rows.iterrows()):
-        key = (normalize_team(row["HomeTeam"]),
-               normalize_team(row["AwayTeam"]),
-               row["Date"].strftime("%Y-%m-%d"))
+
+    for fx in upcoming_fixtures:
+        home_raw = fx["home_team"]
+        away_raw = fx["away_team"]
+        home_csv = CSV_NAME_MAP.get(home_raw, home_raw)
+        away_csv = CSV_NAME_MAP.get(away_raw, away_raw)
+
+        row = {}
+
+        # Get latest stats for each team
+        # For home team: prefer their latest home match row (has home_avg_* already)
+        # Fall back to away match row and map away_* -> home_*
+        h_home = team_home_stats.get(home_csv)
+        h_away = team_away_stats.get(home_csv)
+        a_home = team_home_stats.get(away_csv)
+        a_away = team_away_stats.get(away_csv)
+
+        for feat in feat_names:
+            if feat.startswith("home_") and not feat.startswith("home_fatigued"):
+                # Try getting this from home team's latest home match
+                val = None
+                if h_home is not None and feat in h_home.index and pd.notna(h_home[feat]):
+                    val = h_home[feat]
+                elif h_away is not None:
+                    # Map: home_avg_GF from away match -> use away_avg_GF
+                    away_feat = feat.replace("home_", "away_", 1)
+                    if away_feat in h_away.index and pd.notna(h_away[away_feat]):
+                        val = h_away[away_feat]
+                row[feat] = val if val is not None else medians.get(feat, 0)
+
+            elif feat.startswith("away_") and not feat.startswith("away_fatigued"):
+                val = None
+                if a_away is not None and feat in a_away.index and pd.notna(a_away[feat]):
+                    val = a_away[feat]
+                elif a_home is not None:
+                    home_feat = feat.replace("away_", "home_", 1)
+                    if home_feat in a_home.index and pd.notna(a_home[home_feat]):
+                        val = a_home[home_feat]
+                row[feat] = val if val is not None else medians.get(feat, 0)
+
+            elif feat.startswith("diff_"):
+                home_key = feat.replace("diff_", "home_", 1)
+                away_key = feat.replace("diff_", "away_", 1)
+                h_val = row.get(home_key, medians.get(home_key, 0))
+                a_val = row.get(away_key, medians.get(away_key, 0))
+                row[feat] = h_val - a_val
+
+            elif feat.startswith("elo_"):
+                r_home = elo_sys.get_rating(home_csv)
+                r_away = elo_sys.get_rating(away_csv)
+                if feat == "elo_home":
+                    row[feat] = r_home
+                elif feat == "elo_away":
+                    row[feat] = r_away
+                elif feat == "elo_diff":
+                    row[feat] = r_home - r_away
+                elif feat == "elo_expected_home":
+                    row[feat] = elo_sys.expected_score(r_home + 65, r_away)
+                elif feat == "elo_expected_away":
+                    row[feat] = 1 - elo_sys.expected_score(r_home + 65, r_away)
+
+            elif feat.startswith("rest_") or feat in ("home_fatigued", "away_fatigued", "is_midweek"):
+                if feat == "home_rest_days":
+                    row[feat] = 7
+                elif feat == "away_rest_days":
+                    row[feat] = 7
+                elif feat == "rest_advantage":
+                    row[feat] = 0
+                elif feat in ("home_fatigued", "away_fatigued"):
+                    row[feat] = 0
+                elif feat == "is_midweek":
+                    dt = pd.Timestamp(fx["date"])
+                    row[feat] = 1 if dt.dayofweek in (1, 2) else 0
+
+            elif feat.startswith("h2h_"):
+                row[feat] = medians.get(feat, 0)
+
+            else:
+                row[feat] = medians.get(feat, 0)
+
+        # Predict
+        X_row = pd.DataFrame([row], columns=feat_names).fillna(medians)
+        X_scaled = scaler.transform(X_row)
+        pred = model.predict(X_scaled)[0]
+        prob = model.predict_proba(X_scaled)[0]
+
+        key = (home_raw, away_raw, fx["date"])
         results[key] = {
-            "prediction": label[preds[i]],
-            "prediction_code": int(preds[i]),
-            "home_win_prob": round(probs[i][2] * 100, 1),
-            "draw_prob": round(probs[i][1] * 100, 1),
-            "away_win_prob": round(probs[i][0] * 100, 1),
-            "confidence": round(probs[i].max() * 100, 1),
+            "prediction": label[pred],
+            "prediction_code": int(pred),
+            "home_win_prob": round(prob[2] * 100, 1),
+            "draw_prob": round(prob[1] * 100, 1),
+            "away_win_prob": round(prob[0] * 100, 1),
+            "confidence": round(prob.max() * 100, 1),
             "source": "ml",
         }
 
-    print(f"  ML predictions generated for {len(results)} fixtures")
+    print(f" ML predictions generated for {len(results)} fixtures")
     return results
 
 
-def blend_predictions(elo_pred, ml_pred, ml_weight=0.4):
-    """Blend ELO and ML predictions, weighting ML more when confident.
+def blend_predictions(elo_pred, ml_pred, ml_weight=0.35):
+    """Blend ELO and ML predictions.
 
-    ML tends to over-predict draws when missing odds/xG features,
-    so we reduce its weight when the ML draw probability seems inflated.
+    ML model trained without odds features gets ~51% CV accuracy vs ELO's ~50%.
+    Use 65/35 ELO/ML split, with ML weight reduced when it seems uncertain.
     """
     if not ml_pred:
         return elo_pred
@@ -434,10 +522,10 @@ def blend_predictions(elo_pred, ml_pred, ml_weight=0.4):
     ml_draw = ml_pred["draw_prob"]
     ml_away = ml_pred["away_win_prob"]
 
-    # If ML draw prob > 45%, likely inflated by missing features — dampen ML
+    # Reduce ML weight when draw probability is inflated (a sign of uncertainty)
     effective_weight = ml_weight
-    if ml_draw > 45:
-        effective_weight = max(0.15, ml_weight * (1 - (ml_draw - 45) / 30))
+    if ml_draw > 40:
+        effective_weight = max(0.1, ml_weight * (1 - (ml_draw - 40) / 25))
 
     elo_home = elo_pred["home_win_prob"]
     elo_draw = elo_pred["draw_prob"]
@@ -482,7 +570,7 @@ def update_historical(csv_matches, existing_historical):
 
     for cm in csv_matches:
         if cm["home_goals"] is None:
-            continue  # Skip unplayed
+            continue
 
         key = f"{cm['date']}|{cm['home_team']}|{cm['away_team']}"
         existing = existing_map.get(key, {})
@@ -528,7 +616,6 @@ def update_predictions(upcoming_fixtures):
     """Build predictions.json from upcoming fixtures using ML+ELO blend."""
     team_elos = {t["team"]: t["elo"] for t in load_json("team_stats")}
 
-    # Get ML predictions for all upcoming fixtures
     ml_preds = ml_predict_upcoming(upcoming_fixtures) if upcoming_fixtures else {}
 
     predictions = []
@@ -538,11 +625,9 @@ def update_predictions(upcoming_fixtures):
         away_elo = team_elos.get(fx["away_team"], 1500)
         elo_pred = elo_predict(home_elo, away_elo)
 
-        # Look up ML prediction for this fixture
         ml_key = (fx["home_team"], fx["away_team"], fx["date"])
         ml_p = ml_preds.get(ml_key, {})
 
-        # Blend ELO + ML predictions
         pred = blend_predictions(elo_pred, ml_p)
 
         dt = datetime.strptime(fx["date"], "%Y-%m-%d")
@@ -590,7 +675,6 @@ def update_team_stats(csv_matches, existing_teams):
     for t in existing_teams:
         teams_map[t["team"]] = t.copy()
 
-    # Recalculate from all played CSV matches
     stats = {}
     for cm in csv_matches:
         if cm["home_goals"] is None:
@@ -670,7 +754,6 @@ def update_team_stats(csv_matches, existing_teams):
             "goals_conceded_per_game": round(s["goals_against"] / s["matches"], 2) if s["matches"] else 0,
         })
 
-    # Sort by points, then GD, then GF
     result.sort(key=lambda t: (-(t["points"] or 0), -(t["goal_difference"] or 0), -(t["goals_for"] or 0)))
     for i, t in enumerate(result, 1):
         t["position"] = i
@@ -691,7 +774,6 @@ def update_summary(predictions, historical, team_stats):
     draw_pred = sum(1 for p in predictions if p.get("prediction") == "Draw")
     away_pred = sum(1 for p in predictions if p.get("prediction") == "Away Win")
 
-    # Week number from the next upcoming fixture
     current_week = predictions[0]["week_number"] if predictions else 0
 
     return {
@@ -711,6 +793,26 @@ def update_summary(predictions, historical, team_stats):
     }
 
 
+def update_elo_ratings(csv_matches, team_stats):
+    """Recalculate ELO ratings from all historical matches."""
+    from src.feature_engineering import FootballELO
+
+    elo = FootballELO(k=32, home_advantage=65)
+    for cm in csv_matches:
+        if cm["home_goals"] is None:
+            continue
+        home = CSV_NAME_MAP.get(cm["home_team"], cm["home_team"])
+        away = CSV_NAME_MAP.get(cm["away_team"], cm["away_team"])
+        elo.update(home, away, cm["home_goals"], cm["away_goals"])
+
+    # Update ELO in team stats
+    for t in team_stats:
+        csv_name = CSV_NAME_MAP.get(t["team"], t["team"])
+        t["elo"] = round(elo.get_rating(csv_name))
+
+    return team_stats
+
+
 def main():
     print("=== Soccer Prediction Data Refresh ===\n")
 
@@ -726,17 +828,28 @@ def main():
     existing_historical = load_json("historical")
     existing_teams = load_json("team_stats")
 
-    # 3. Update all JSON files
+    # 3. Update team stats (standings from CSV)
     print("\nUpdating data files...")
+    team_stats = update_team_stats(csv_matches, existing_teams)
+
+    # 4. Recalculate ELO ratings
+    print("Recalculating ELO ratings...")
+    try:
+        team_stats = update_elo_ratings(csv_matches, team_stats)
+    except ImportError:
+        print(" Warning: Could not import FootballELO, keeping existing ELO ratings")
+
+    save_json("team_stats", team_stats)
+
+    # 5. Update historical (needs ELO from team_stats)
     historical = update_historical(csv_matches, existing_historical)
     save_json("historical", historical)
 
+    # 6. Update predictions (uses ML+ELO blend)
     predictions = update_predictions(upcoming)
     save_json("predictions", predictions)
 
-    team_stats = update_team_stats(csv_matches, existing_teams)
-    save_json("team_stats", team_stats)
-
+    # 7. Update summary
     summary = update_summary(predictions, historical, team_stats)
     save_json("summary", summary)
 
