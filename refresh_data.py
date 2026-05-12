@@ -1,7 +1,7 @@
 """Refresh soccer prediction data from free sources.
 
 Fetches latest PL results from football-data.co.uk CSVs,
-upcoming fixtures from TheSportsDB, generates ELO-based predictions,
+upcoming fixtures from TheSportsDB, generates ML+ELO blended predictions,
 and updates all JSON data files.
 """
 
@@ -10,6 +10,9 @@ import requests
 import csv
 import io
 import sys
+import pickle
+import pandas as pd
+import numpy as np
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -253,6 +256,159 @@ def elo_predict(home_elo, away_elo, home_advantage=HOME_ADVANTAGE):
     }
 
 
+ROOT_DIR = Path(__file__).parent
+
+
+def ml_predict_upcoming(upcoming_fixtures):
+    """Use the ML ensemble model to predict upcoming fixtures.
+
+    Loads 2 seasons of historical data, appends upcoming fixtures,
+    runs the full feature engineering pipeline, then predicts.
+    Returns dict mapping (home, away, date) -> ML prediction result.
+    """
+    try:
+        from src.data_loader import FootballDataLoader
+        from src.feature_engineering import (
+            FeatureEngineer, FootballELO,
+            compute_xg_proxy, compute_fatigue_features,
+            compute_h2h_features, add_odds_features,
+        )
+    except ImportError as e:
+        print(f"  Warning: ML modules unavailable ({e}), using ELO only")
+        return {}
+
+    model_path = ROOT_DIR / "outputs" / "ensemble_model.pkl"
+    scaler_path = ROOT_DIR / "outputs" / "scaler.pkl"
+    feat_path = ROOT_DIR / "outputs" / "feature_names.pkl"
+
+    if not model_path.exists() or not scaler_path.exists() or not feat_path.exists():
+        print("  Warning: ML model files not found, using ELO only")
+        return {}
+
+    print("  Loading ML ensemble model...")
+    model = pickle.load(open(model_path, "rb"))
+    scaler = pickle.load(open(scaler_path, "rb"))
+    feat_names = pickle.load(open(feat_path, "rb"))
+
+    # Load historical data (2 seasons)
+    loader = FootballDataLoader(seasons=["2526", "2425"], leagues=["E0"])
+    raw = loader.load_all()
+    df = raw.copy()
+    df["Date"] = pd.to_datetime(df["Date"], dayfirst=True, errors="coerce")
+    df = df.dropna(subset=["Date"])
+
+    # Numeric coercion
+    num_cols = ["FTHG","FTAG","HTHG","HTAG","HS","AS","HST","AST",
+                "HF","AF","HC","AC","HY","AY","HR","AR","B365H","B365D","B365A"]
+    for c in num_cols:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    result_map = {"H": 2, "D": 1, "A": 0}
+    df["Result"] = df["FTR"].map(result_map)
+
+    # Append upcoming fixtures as placeholder rows
+    csv_name_map = CSV_NAME_MAP
+    for fx in upcoming_fixtures:
+        row = {col: np.nan for col in df.columns}
+        row["Date"] = pd.Timestamp(fx["date"])
+        row["HomeTeam"] = csv_name_map.get(fx["home_team"], fx["home_team"])
+        row["AwayTeam"] = csv_name_map.get(fx["away_team"], fx["away_team"])
+        row["League"] = "Premier League"
+        row["Season"] = "2526"
+        df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+
+    df = df.sort_values("Date").reset_index(drop=True)
+
+    # Run full feature pipeline
+    print("  Computing features for ML predictions...")
+    fe = FeatureEngineer(window=5)
+    featured = fe.build_match_features(df)
+    elo_sys = FootballELO(k=32, home_advantage=65)
+    featured = elo_sys.compute_elo_features(featured)
+    featured = compute_xg_proxy(featured)
+    featured = compute_fatigue_features(featured)
+    featured = compute_h2h_features(featured)
+    featured = add_odds_features(featured)
+
+    # Predict on upcoming (Result is NaN)
+    upcoming_rows = featured[featured["Result"].isna()]
+    if upcoming_rows.empty:
+        return {}
+
+    X = upcoming_rows[feat_names].fillna(featured[feat_names].median())
+    X_scaled = scaler.transform(X)
+    preds = model.predict(X_scaled)
+    probs = model.predict_proba(X_scaled)
+
+    label = {0: "Away Win", 1: "Draw", 2: "Home Win"}
+    results = {}
+    for i, (idx, row) in enumerate(upcoming_rows.iterrows()):
+        key = (normalize_team(row["HomeTeam"]),
+               normalize_team(row["AwayTeam"]),
+               row["Date"].strftime("%Y-%m-%d"))
+        results[key] = {
+            "prediction": label[preds[i]],
+            "prediction_code": int(preds[i]),
+            "home_win_prob": round(probs[i][2] * 100, 1),
+            "draw_prob": round(probs[i][1] * 100, 1),
+            "away_win_prob": round(probs[i][0] * 100, 1),
+            "confidence": round(probs[i].max() * 100, 1),
+            "source": "ml",
+        }
+
+    print(f"  ML predictions generated for {len(results)} fixtures")
+    return results
+
+
+def blend_predictions(elo_pred, ml_pred, ml_weight=0.4):
+    """Blend ELO and ML predictions, weighting ML more when confident.
+
+    ML tends to over-predict draws when missing odds/xG features,
+    so we reduce its weight when the ML draw probability seems inflated.
+    """
+    if not ml_pred:
+        return elo_pred
+
+    ml_home = ml_pred["home_win_prob"]
+    ml_draw = ml_pred["draw_prob"]
+    ml_away = ml_pred["away_win_prob"]
+
+    # If ML draw prob > 45%, likely inflated by missing features — dampen ML
+    effective_weight = ml_weight
+    if ml_draw > 45:
+        effective_weight = max(0.15, ml_weight * (1 - (ml_draw - 45) / 30))
+
+    elo_home = elo_pred["home_win_prob"]
+    elo_draw = elo_pred["draw_prob"]
+    elo_away = elo_pred["away_win_prob"]
+
+    w = effective_weight
+    home = round(elo_home * (1 - w) + ml_home * w, 1)
+    draw = round(elo_draw * (1 - w) + ml_draw * w, 1)
+    away = round(100.0 - home - draw, 1)
+
+    if home >= draw and home >= away:
+        prediction, prediction_code = "Home Win", 2
+    elif away >= draw:
+        prediction, prediction_code = "Away Win", 0
+    else:
+        prediction, prediction_code = "Draw", 1
+
+    confidence = round(max(home, draw, away), 1)
+    confidence_level = "High" if confidence >= 70 else "Medium" if confidence >= 50 else "Low"
+
+    return {
+        "home_win_prob": home,
+        "draw_prob": draw,
+        "away_win_prob": away,
+        "prediction": prediction,
+        "prediction_code": prediction_code,
+        "confidence": confidence,
+        "confidence_level": confidence_level,
+    }
+
+
 def update_historical(csv_matches, existing_historical):
     """Build full historical data from CSV, merging with existing predictions."""
     existing_map = {}
@@ -309,14 +465,25 @@ def update_historical(csv_matches, existing_historical):
 
 
 def update_predictions(upcoming_fixtures):
-    """Build predictions.json from upcoming fixtures."""
+    """Build predictions.json from upcoming fixtures using ML+ELO blend."""
     team_elos = {t["team"]: t["elo"] for t in load_json("team_stats")}
+
+    # Get ML predictions for all upcoming fixtures
+    ml_preds = ml_predict_upcoming(upcoming_fixtures) if upcoming_fixtures else {}
+
     predictions = []
 
     for i, fx in enumerate(upcoming_fixtures, 1):
         home_elo = team_elos.get(fx["home_team"], 1500)
         away_elo = team_elos.get(fx["away_team"], 1500)
-        pred = elo_predict(home_elo, away_elo)
+        elo_pred = elo_predict(home_elo, away_elo)
+
+        # Look up ML prediction for this fixture
+        ml_key = (fx["home_team"], fx["away_team"], fx["date"])
+        ml_p = ml_preds.get(ml_key, {})
+
+        # Blend ELO + ML predictions
+        pred = blend_predictions(elo_pred, ml_p)
 
         dt = datetime.strptime(fx["date"], "%Y-%m-%d")
         day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]

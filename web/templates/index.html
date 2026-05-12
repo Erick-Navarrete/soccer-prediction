@@ -5,59 +5,88 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Soccer Predictions</title>
 <style>
+:root {
+  --bg: #f5f5f5; --surface: #fff; --surface2: #f9fafb; --border: #e5e7eb; --border2: #f3f4f6;
+  --text: #333; --text2: #374151; --text3: #6b7280; --text4: #9ca3af;
+  --primary: #4338ca; --primary-light: #f0f0ff; --primary-bg: #e0e7ff;
+  --tag-home-bg: #d1fae5; --tag-home-fg: #065f46;
+  --tag-draw-bg: #fef3c7; --tag-draw-fg: #92400e;
+  --tag-away-bg: #fee2e2; --tag-away-fg: #991b1b;
+  --chart-fill: rgba(67,56,202,0.08); --avg-line: #f59e0b;
+}
+[data-theme="dark"] {
+  --bg: #111827; --surface: #1f2937; --surface2: #374151; --border: #374151; --border2: #4b5563;
+  --text: #e5e7eb; --text2: #d1d5db; --text3: #9ca3af; --text4: #6b7280;
+  --primary: #818cf8; --primary-light: #1e1b4b; --primary-bg: #312e81;
+  --tag-home-bg: #064e3b; --tag-home-fg: #6ee7b7;
+  --tag-draw-bg: #78350f; --tag-draw-fg: #fcd34d;
+  --tag-away-bg: #7f1d1d; --tag-away-fg: #fca5a5;
+  --chart-fill: rgba(129,140,248,0.12); --avg-line: #fbbf24;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; font-size: 14px; }
-.header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; border-bottom: 2px solid #4338ca; }
-.header h1 { font-size: 20px; font-weight: 700; color: #4338ca; }
-.btn-refresh { padding: 6px 14px; border: 1px solid #4338ca; border-radius: 6px; background: #fff; color: #4338ca; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.btn-refresh:hover { background: #4338ca; color: #fff; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; transition: background 0.2s, color 0.2s; }
+/* Header */
+.header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--surface); border-bottom: 2px solid var(--primary); }
+.header h1 { font-size: 20px; font-weight: 700; color: var(--primary); }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.btn-icon { width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.btn-icon:hover { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); }
+.btn-refresh { padding: 6px 14px; border: 1px solid var(--primary); border-radius: 6px; background: var(--surface); color: var(--primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-refresh:hover { background: var(--primary); color: #fff; }
 .btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-refresh.loading { background: #e0e7ff; color: #4338ca; }
+.btn-refresh.loading { background: var(--primary-bg); color: var(--primary); }
 /* Tabs */
-.tabs { display: flex; background: #e5e7eb; border-bottom: 1px solid #d1d5db; position: sticky; top: 0; z-index: 10; }
-.tabs button { flex: 1; padding: 10px 8px; border: none; background: none; font-size: 13px; font-weight: 600; color: #6b7280; cursor: pointer; border-bottom: 3px solid transparent; }
-.tabs button.active { color: #4338ca; border-bottom-color: #4338ca; background: #fff; }
+.tabs { display: flex; background: var(--surface2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+.tabs button { flex: 1; padding: 10px 8px; border: none; background: none; font-size: 13px; font-weight: 600; color: var(--text3); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.15s; }
+.tabs button.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--surface); }
+.tabs button:hover { color: var(--primary); }
 /* Summary cards */
-.summary { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: #fff; border-bottom: 1px solid #e5e7eb; }
-.summary .card { min-width: 100px; padding: 10px 14px; background: #f0f0ff; border-radius: 6px; text-align: center; }
-.summary .card .num { font-size: 22px; font-weight: 700; color: #4338ca; }
-.summary .card .lbl { font-size: 11px; color: #6b7280; margin-top: 2px; }
+.summary { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: var(--surface); border-bottom: 1px solid var(--border); }
+.summary .card { min-width: 100px; padding: 10px 14px; background: var(--primary-light); border-radius: 6px; text-align: center; }
+.summary .card .num { font-size: 22px; font-weight: 700; color: var(--primary); }
+.summary .card .lbl { font-size: 11px; color: var(--text3); margin-top: 2px; }
 /* Tables */
 .table-wrap { overflow-x: auto; padding: 0; }
-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
-th { background: #f9fafb; padding: 8px 10px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb; white-space: nowrap; position: sticky; top: 0; }
-td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; white-space: nowrap; }
-tr:hover td { background: #f9fafb; }
+table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13px; }
+th { background: var(--surface2); padding: 8px 10px; text-align: left; font-weight: 600; color: var(--text2); border-bottom: 2px solid var(--border); white-space: nowrap; position: sticky; top: 0; cursor: pointer; user-select: none; }
+th:hover { color: var(--primary); }
+th.sort-asc::after { content: ' \25B2'; font-size: 9px; }
+th.sort-desc::after { content: ' \25BC'; font-size: 9px; }
+td { padding: 6px 10px; border-bottom: 1px solid var(--border2); white-space: nowrap; }
+tr:hover td { background: var(--surface2); }
 /* Badges */
 .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-.tag-home { background: #d1fae5; color: #065f46; }
-.tag-draw { background: #fef3c7; color: #92400e; }
-.tag-away { background: #fee2e2; color: #991b1b; }
-.tag-correct { background: #d1fae5; color: #065f46; }
-.tag-wrong { background: #fee2e2; color: #991b1b; }
-.tag-conf-high { background: #d1fae5; color: #065f46; }
-.tag-conf-med { background: #fef3c7; color: #92400e; }
-.tag-conf-low { background: #fee2e2; color: #991b1b; }
+.tag-home { background: var(--tag-home-bg); color: var(--tag-home-fg); }
+.tag-draw { background: var(--tag-draw-bg); color: var(--tag-draw-fg); }
+.tag-away { background: var(--tag-away-bg); color: var(--tag-away-fg); }
+.tag-correct { background: var(--tag-home-bg); color: var(--tag-home-fg); }
+.tag-wrong { background: var(--tag-away-bg); color: var(--tag-away-fg); }
+.tag-conf-high { background: var(--tag-home-bg); color: var(--tag-home-fg); }
+.tag-conf-med { background: var(--tag-draw-bg); color: var(--tag-draw-fg); }
+.tag-conf-low { background: var(--tag-away-bg); color: var(--tag-away-fg); }
 /* Section */
 .section { display: none; }
 .section.active { display: block; }
 /* Chart */
-.chart-wrap { padding: 12px; background: #fff; }
+.chart-wrap { padding: 12px; background: var(--surface); }
 .chart-wrap canvas { width: 100%; height: 200px; }
+/* Section headings */
+.section h2 { font-size: 16px; margin-bottom: 10px; color: var(--primary); }
 /* Footer */
-footer { text-align: center; padding: 12px; font-size: 11px; color: #9ca3af; border-top: 1px solid #e5e7eb; background: #fff; margin-top: 16px; }
+footer { text-align: center; padding: 12px; font-size: 11px; color: var(--text4); border-top: 1px solid var(--border); background: var(--surface); margin-top: 16px; }
 /* Toast */
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background: #1f2937; color: #fff; border-radius: 8px; font-size: 13px; z-index: 100; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+[data-theme="dark"] .toast { background: #e5e7eb; color: #111; }
 .toast.show { opacity: 1; }
 /* Responsive */
 @media (max-width: 600px) {
-.header h1 { font-size: 17px; }
-.btn-refresh { font-size: 11px; padding: 5px 10px; }
-.tabs button { font-size: 12px; padding: 8px 4px; }
-.summary .card { min-width: 80px; padding: 8px 10px; }
-.summary .card .num { font-size: 18px; }
-table { font-size: 12px; }
-th, td { padding: 5px 6px; }
+  .header h1 { font-size: 17px; }
+  .btn-refresh { font-size: 11px; padding: 5px 10px; }
+  .tabs button { font-size: 12px; padding: 8px 4px; }
+  .summary .card { min-width: 80px; padding: 8px 10px; }
+  .summary .card .num { font-size: 18px; }
+  table { font-size: 12px; }
+  th, td { padding: 5px 6px; }
 }
 </style>
 </head>
@@ -65,7 +94,10 @@ th, td { padding: 5px 6px; }
 
 <div class="header">
   <h1>SoccerAI - Premier League 2025-26</h1>
-  <button class="btn-refresh" id="refresh-btn" onclick="refreshData()">Update Now</button>
+  <div class="header-actions">
+    <button class="btn-icon" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode">&#9790;</button>
+    <button class="btn-refresh" id="refresh-btn" onclick="refreshData()">Update Now</button>
+  </div>
 </div>
 
 <div class="summary" id="summary"></div>
@@ -79,37 +111,37 @@ th, td { padding: 5px 6px; }
 
 <div class="section active" id="predictions">
 <div class="table-wrap"><table id="pred-table"><thead><tr>
-<th>Date</th><th>Home</th><th>Away</th><th>Prediction</th><th>Confidence</th><th>Home%</th><th>Draw%</th><th>Away%</th><th>Result</th><th>Score</th>
+<th data-key="date">Date</th><th data-key="home_team">Home</th><th data-key="away_team">Away</th><th data-key="prediction">Prediction</th><th data-key="confidence" data-type="num">Confidence</th><th data-key="home_win_prob" data-type="num">Home%</th><th data-key="draw_prob" data-type="num">Draw%</th><th data-key="away_win_prob" data-type="num">Away%</th><th>Result</th><th>Score</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
 <div class="section" id="historical">
 <div class="table-wrap"><table id="hist-table"><thead><tr>
-<th>Date</th><th>Home</th><th>Away</th><th>Predicted</th><th>Actual</th><th>Score</th><th>Correct?</th><th>Confidence</th>
+<th data-key="date">Date</th><th data-key="home_team">Home</th><th data-key="away_team">Away</th><th data-key="prediction">Predicted</th><th data-key="actual">Actual</th><th>Score</th><th data-key="is_correct" data-type="num">Correct?</th><th data-key="confidence" data-type="num">Confidence</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
 <div class="section" id="standings">
 <div class="table-wrap"><table id="stand-table"><thead><tr>
-<th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th><th>ELO</th><th>Form</th>
+<th data-key="position" data-type="num">#</th><th data-key="team">Team</th><th data-key="matches" data-type="num">P</th><th data-key="wins" data-type="num">W</th><th data-key="draws" data-type="num">D</th><th data-key="losses" data-type="num">L</th><th data-key="goals_for" data-type="num">GF</th><th data-key="goals_against" data-type="num">GA</th><th data-key="goal_difference" data-type="num">GD</th><th data-key="points" data-type="num">Pts</th><th data-key="elo" data-type="num">ELO</th><th data-key="form">Form</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
 <div class="section" id="analytics">
 <div class="chart-wrap">
-  <h2 style="font-size:16px;margin-bottom:10px;color:#4338ca">Accuracy Trend by Week</h2>
+  <h2>Accuracy Trend by Month</h2>
   <canvas id="trend-chart"></canvas>
 </div>
 <div class="table-wrap" style="padding:12px">
-<h2 style="font-size:16px;margin-bottom:10px;color:#4338ca">Accuracy Breakdown</h2>
+<h2>Accuracy Breakdown</h2>
 <table id="analytics-table"><thead><tr>
 <th>Metric</th><th>Value</th>
 </tr></thead><tbody></tbody></table>
 </div>
 <div class="table-wrap" style="padding:0 12px 12px">
-<h2 style="font-size:16px;margin-bottom:10px;color:#4338ca">Accuracy by Team</h2>
+<h2>Accuracy by Team</h2>
 <table id="team-acc-table"><thead><tr>
-<th>Team</th><th>Predicted</th><th>Correct</th><th>Accuracy</th>
+<th data-key="team">Team</th><th data-key="predicted" data-type="num">Predicted</th><th data-key="correct" data-type="num">Correct</th><th data-key="acc" data-type="num">Accuracy</th>
 </tr></thead><tbody></tbody></table>
 </div>
 </div>
@@ -124,31 +156,48 @@ var historical = [];
 var teams = [];
 var summary = {};
 
+/* Dark mode */
+function toggleTheme() {
+  var html = document.documentElement;
+  var isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-btn').innerHTML = isDark ? '☾' : '☉';
+}
+(function() {
+  var saved = localStorage.getItem('theme');
+  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+
+/* Tabs */
 function showTab(name) {
   document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
   document.querySelectorAll('.tabs button').forEach(function(b) { b.classList.remove('active'); });
   document.getElementById(name).classList.add('active');
   event.target.classList.add('active');
+  // Re-render chart when analytics tab is shown
+  if (name === 'analytics' && historical.length) renderTrendChart();
 }
 
+/* Tags */
 function tag(text, cls) { return '<span class="tag ' + cls + '">' + text + '</span>'; }
-
 function resultTag(result) {
   if (result === 'Home Win') return tag('H', 'tag-home');
   if (result === 'Draw') return tag('D', 'tag-draw');
   if (result === 'Away Win') return tag('A', 'tag-away');
   return result || '-';
 }
-
 function confTag(conf) {
   var cls = conf >= 70 ? 'tag-conf-high' : conf >= 50 ? 'tag-conf-med' : 'tag-conf-low';
   return tag(conf + '%', cls);
 }
-
 function correctTag(ok) {
   return ok ? tag('Yes', 'tag-correct') : ok === false ? tag('No', 'tag-wrong') : '-';
 }
 
+/* Toast */
 function showToast(msg) {
   var el = document.getElementById('toast');
   el.textContent = msg;
@@ -156,6 +205,63 @@ function showToast(msg) {
   setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
 
+/* Sortable tables */
+function makeSortable(tableId, dataFn) {
+  var table = document.getElementById(tableId);
+  if (!table) return;
+  table.querySelectorAll('th[data-key]').forEach(function(th) {
+    th.addEventListener('click', function() {
+      var key = th.getAttribute('data-key');
+      var type = th.getAttribute('data-type') || 'str';
+      var currentDir = th.classList.contains('sort-asc') ? 'asc' : th.classList.contains('sort-desc') ? 'desc' : '';
+      var dir = currentDir === 'asc' ? 'desc' : 'asc';
+
+      table.querySelectorAll('th').forEach(function(h) { h.classList.remove('sort-asc', 'sort-desc'); });
+      th.classList.add('sort-' + dir);
+
+      dataFn(key, dir, type);
+    });
+  });
+}
+
+var predSortKey = '', predSortDir = '';
+var histSortKey = 'date', histSortDir = 'desc';
+var standSortKey = 'points', standSortDir = 'desc';
+
+function sortPredictions(key, dir, type) {
+  predSortKey = key; predSortDir = dir;
+  var sorted = predictions.slice().sort(function(a, b) {
+    var va = a[key], vb = b[key];
+    if (type === 'num') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+    else { va = (va || '').toString().toLowerCase(); vb = (vb || '').toString().toLowerCase(); }
+    return dir === 'asc' ? (va > vb ? 1 : va < vb ? -1 : 0) : (va < vb ? 1 : va > vb ? -1 : 0);
+  });
+  renderPredictionRows(sorted);
+}
+
+function sortHistorical(key, dir, type) {
+  histSortKey = key; histSortDir = dir;
+  var sorted = historical.slice().sort(function(a, b) {
+    var va = a[key], vb = b[key];
+    if (type === 'num') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+    else { va = (va || '').toString().toLowerCase(); vb = (vb || '').toString().toLowerCase(); }
+    return dir === 'asc' ? (va > vb ? 1 : va < vb ? -1 : 0) : (va < vb ? 1 : va > vb ? -1 : 0);
+  });
+  renderHistoricalRows(sorted);
+}
+
+function sortStandings(key, dir, type) {
+  standSortKey = key; standSortDir = dir;
+  var sorted = teams.slice().sort(function(a, b) {
+    var va = a[key], vb = b[key];
+    if (type === 'num') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+    else { va = (va || '').toString().toLowerCase(); vb = (vb || '').toString().toLowerCase(); }
+    return dir === 'asc' ? (va > vb ? 1 : va < vb ? -1 : 0) : (va < vb ? 1 : va > vb ? -1 : 0);
+  });
+  renderStandingsRows(sorted);
+}
+
+/* Render functions */
 function renderSummary() {
   var s = summary;
   var html = '';
@@ -167,70 +273,77 @@ function renderSummary() {
   document.getElementById('last-updated').textContent = s.last_updated || '-';
 }
 
-function renderPredictions() {
-  var tb = document.querySelector('#pred-table tbody');
-  var rows = predictions.map(function(p) {
-    var result = p.actual_result && p.actual_result !== 'Not Played' ? resultTag(p.actual_result) : '-';
-    var score = (p.home_goals != null && p.away_goals != null) ? p.home_goals + '-' + p.away_goals : '-';
-    return '<tr>'
-      + '<td>' + (p.date || '').split(' ')[0] + '</td>'
-      + '<td>' + p.home_team + '</td>'
-      + '<td>' + p.away_team + '</td>'
-      + '<td>' + resultTag(p.prediction) + '</td>'
-      + '<td>' + confTag(p.confidence) + '</td>'
-      + '<td>' + (p.home_win_prob || p.home_prob || 0) + '</td>'
-      + '<td>' + (p.draw_prob || 0) + '</td>'
-      + '<td>' + (p.away_win_prob || p.away_prob || 0) + '</td>'
-      + '<td>' + result + '</td>'
-      + '<td>' + score + '</td>'
-      + '</tr>';
-  });
-  tb.innerHTML = rows.join('');
+function predictionRow(p) {
+  var result = p.actual_result && p.actual_result !== 'Not Played' ? resultTag(p.actual_result) : '-';
+  var score = (p.home_goals != null && p.away_goals != null) ? p.home_goals + '-' + p.away_goals : '-';
+  return '<tr>'
+    + '<td>' + (p.date || '').split(' ')[0] + '</td>'
+    + '<td>' + p.home_team + '</td>'
+    + '<td>' + p.away_team + '</td>'
+    + '<td>' + resultTag(p.prediction) + '</td>'
+    + '<td>' + confTag(p.confidence) + '</td>'
+    + '<td>' + (p.home_win_prob || p.home_prob || 0) + '</td>'
+    + '<td>' + (p.draw_prob || 0) + '</td>'
+    + '<td>' + (p.away_win_prob || p.away_prob || 0) + '</td>'
+    + '<td>' + result + '</td>'
+    + '<td>' + score + '</td>'
+    + '</tr>';
+}
+
+function renderPredictions() { renderPredictionRows(predictions); }
+function renderPredictionRows(data) {
+  document.querySelector('#pred-table tbody').innerHTML = data.map(predictionRow).join('');
+}
+
+function historicalRow(p) {
+  var score = (p.home_goals != null && p.away_goals != null) ? p.home_goals + '-' + p.away_goals : '-';
+  return '<tr>'
+    + '<td>' + (p.date || '').split(' ')[0] + '</td>'
+    + '<td>' + p.home_team + '</td>'
+    + '<td>' + p.away_team + '</td>'
+    + '<td>' + resultTag(p.prediction) + '</td>'
+    + '<td>' + resultTag(p.actual) + '</td>'
+    + '<td>' + score + '</td>'
+    + '<td>' + correctTag(p.is_correct) + '</td>'
+    + '<td>' + confTag(p.confidence) + '</td>'
+    + '</tr>';
 }
 
 function renderHistorical() {
-  var tb = document.querySelector('#hist-table tbody');
   var sorted = historical.slice().sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
-  var rows = sorted.map(function(p) {
-    var score = (p.home_goals != null && p.away_goals != null) ? p.home_goals + '-' + p.away_goals : '-';
-    return '<tr>'
-      + '<td>' + (p.date || '').split(' ')[0] + '</td>'
-      + '<td>' + p.home_team + '</td>'
-      + '<td>' + p.away_team + '</td>'
-      + '<td>' + resultTag(p.prediction) + '</td>'
-      + '<td>' + resultTag(p.actual) + '</td>'
-      + '<td>' + score + '</td>'
-      + '<td>' + correctTag(p.is_correct) + '</td>'
-      + '<td>' + confTag(p.confidence) + '</td>'
-      + '</tr>';
-  });
-  tb.innerHTML = rows.join('');
+  renderHistoricalRows(sorted);
+}
+function renderHistoricalRows(data) {
+  document.querySelector('#hist-table tbody').innerHTML = data.map(historicalRow).join('');
+}
+
+function standingsRow(t, i) {
+  return '<tr>'
+    + '<td>' + (t.position || i + 1) + '</td>'
+    + '<td><b>' + t.team + '</b></td>'
+    + '<td>' + (t.matches || 0) + '</td>'
+    + '<td>' + (t.wins || 0) + '</td>'
+    + '<td>' + (t.draws || 0) + '</td>'
+    + '<td>' + (t.losses || 0) + '</td>'
+    + '<td>' + (t.goals_for || 0) + '</td>'
+    + '<td>' + (t.goals_against || 0) + '</td>'
+    + '<td>' + (t.goal_difference > 0 ? '+' : '') + (t.goal_difference || 0) + '</td>'
+    + '<td><b>' + (t.points || 0) + '</b></td>'
+    + '<td>' + (t.elo || 0) + '</td>'
+    + '<td>' + (t.form || '-') + '</td>'
+    + '</tr>';
 }
 
 function renderStandings() {
-  var tb = document.querySelector('#stand-table tbody');
   var sorted = teams.slice().sort(function(a, b) { return (b.points || 0) - (a.points || 0); });
-  var rows = sorted.map(function(t, i) {
-    return '<tr>'
-      + '<td>' + (i + 1) + '</td>'
-      + '<td><b>' + t.team + '</b></td>'
-      + '<td>' + (t.matches || 0) + '</td>'
-      + '<td>' + (t.wins || 0) + '</td>'
-      + '<td>' + (t.draws || 0) + '</td>'
-      + '<td>' + (t.losses || 0) + '</td>'
-      + '<td>' + (t.goals_for || 0) + '</td>'
-      + '<td>' + (t.goals_against || 0) + '</td>'
-      + '<td>' + (t.goal_difference > 0 ? '+' : '') + (t.goal_difference || 0) + '</td>'
-      + '<td><b>' + (t.points || 0) + '</b></td>'
-      + '<td>' + (t.elo || 0) + '</td>'
-      + '<td>' + (t.form || '-') + '</td>'
-      + '</tr>';
-  });
-  tb.innerHTML = rows.join('');
+  renderStandingsRows(sorted);
+}
+function renderStandingsRows(data) {
+  document.querySelector('#stand-table tbody').innerHTML = data.map(standingsRow).join('');
 }
 
+/* Trend chart */
 function renderTrendChart() {
-  // Compute accuracy by month
   var monthData = {};
   historical.forEach(function(p) {
     var m = p.date ? p.date.substring(0, 7) : '';
@@ -241,8 +354,6 @@ function renderTrendChart() {
   });
   var months = Object.keys(monthData).sort();
   var accs = months.map(function(m) { return monthData[m].total > 0 ? (monthData[m].correct / monthData[m].total * 100) : 0; });
-  var counts = months.map(function(m) { return monthData[m].total; });
-
   if (months.length === 0) return;
 
   var canvas = document.getElementById('trend-chart');
@@ -250,89 +361,56 @@ function renderTrendChart() {
   var dpr = window.devicePixelRatio || 1;
   var w = canvas.parentElement.clientWidth - 24;
   var h = 200;
-  canvas.width = w * dpr;
-  canvas.height = h * dpr;
-  canvas.style.width = w + 'px';
-  canvas.style.height = h + 'px';
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
   ctx.scale(dpr, dpr);
 
   var pad = { top: 20, right: 20, bottom: 40, left: 40 };
-  var cw = w - pad.left - pad.right;
-  var ch = h - pad.top - pad.bottom;
+  var cw = w - pad.left - pad.right, ch = h - pad.top - pad.bottom;
 
-  // Background
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, w, h);
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var gridColor = isDark ? '#374151' : '#e5e7eb';
+  var textColor = isDark ? '#9ca3af' : '#6b7280';
+  var primaryColor = isDark ? '#818cf8' : '#4338ca';
+  var surfaceColor = isDark ? '#1f2937' : '#fff';
+  var chartFill = isDark ? 'rgba(129,140,248,0.12)' : 'rgba(67,56,202,0.08)';
 
-  // Grid lines
-  ctx.strokeStyle = '#e5e7eb';
-  ctx.lineWidth = 1;
+  ctx.fillStyle = surfaceColor; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = gridColor; ctx.lineWidth = 1;
   for (var pct = 0; pct <= 100; pct += 25) {
     var y = pad.top + ch - (pct / 100 * ch);
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(pad.left + cw, y);
-    ctx.stroke();
-    ctx.fillStyle = '#9ca3af';
-    ctx.font = '11px sans-serif';
-    ctx.textAlign = 'right';
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+    ctx.fillStyle = textColor; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
     ctx.fillText(pct + '%', pad.left - 6, y + 4);
   }
 
-  // Average line
-  var avg = accs.length > 0 ? accs.reduce(function(a, b) { return a + b; }) / accs.length : 0;
+  var avg = accs.reduce(function(a, b) { return a + b; }, 0) / accs.length;
   var avgY = pad.top + ch - (avg / 100 * ch);
-  ctx.strokeStyle = '#f59e0b';
-  ctx.setLineDash([4, 4]);
-  ctx.beginPath();
-  ctx.moveTo(pad.left, avgY);
-  ctx.lineTo(pad.left + cw, avgY);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.strokeStyle = 'var(--avg-line)'; ctx.strokeStyle = isDark ? '#fbbf24' : '#f59e0b';
+  ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(pad.left, avgY); ctx.lineTo(pad.left + cw, avgY); ctx.stroke(); ctx.setLineDash([]);
 
-  // Line + area
   var n = months.length;
-  if (n === 1) {
-    var x = pad.left + cw / 2;
-    var y = pad.top + ch - (accs[0] / 100 * ch);
-    ctx.fillStyle = '#4338ca';
-    ctx.beginPath();
-    ctx.arc(x, y, 4, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
+  if (n >= 2) {
     ctx.beginPath();
     for (var i = 0; i < n; i++) {
       var x = pad.left + (i / (n - 1)) * cw;
       var y = pad.top + ch - (accs[i] / 100 * ch);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
-    ctx.strokeStyle = '#4338ca';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Area fill
-    ctx.lineTo(pad.left + cw, pad.top + ch);
-    ctx.lineTo(pad.left, pad.top + ch);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(67, 56, 202, 0.08)';
-    ctx.fill();
-
-    // Dots
+    ctx.strokeStyle = primaryColor; ctx.lineWidth = 2; ctx.stroke();
+    ctx.lineTo(pad.left + cw, pad.top + ch); ctx.lineTo(pad.left, pad.top + ch); ctx.closePath();
+    ctx.fillStyle = chartFill; ctx.fill();
     for (var i = 0; i < n; i++) {
       var x = pad.left + (i / (n - 1)) * cw;
       var y = pad.top + ch - (accs[i] / 100 * ch);
-      ctx.fillStyle = '#4338ca';
-      ctx.beginPath();
-      ctx.arc(x, y, 3, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = primaryColor; ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
     }
+  } else if (n === 1) {
+    var x = pad.left + cw / 2, y = pad.top + ch - (accs[0] / 100 * ch);
+    ctx.fillStyle = primaryColor; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
   }
 
-  // X labels
-  ctx.fillStyle = '#6b7280';
-  ctx.font = '10px sans-serif';
-  ctx.textAlign = 'center';
+  ctx.fillStyle = textColor; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
   var step = Math.max(1, Math.floor(months.length / 8));
   for (var i = 0; i < n; i += step) {
     var x = pad.left + (n === 1 ? cw / 2 : (i / (n - 1)) * cw);
@@ -340,6 +418,7 @@ function renderTrendChart() {
   }
 }
 
+/* Analytics */
 function renderAnalytics() {
   var total = historical.length;
   var correct = historical.filter(function(p) { return p.is_correct; }).length;
@@ -350,12 +429,9 @@ function renderAnalytics() {
   var awayWins = historical.filter(function(p) { return p.actual === 'Away Win'; }).length;
 
   var highConf = historical.filter(function(p) { return p.confidence >= 70; });
-  var highConfCorrect = highConf.filter(function(p) { return p.is_correct; }).length;
-  var highAcc = highConf.length > 0 ? (highConfCorrect / highConf.length * 100).toFixed(1) : 0;
-
+  var highAcc = highConf.length > 0 ? (highConf.filter(function(p) { return p.is_correct; }).length / highConf.length * 100).toFixed(1) : 0;
   var medConf = historical.filter(function(p) { return p.confidence >= 50 && p.confidence < 70; });
-  var medConfCorrect = medConf.filter(function(p) { return p.is_correct; }).length;
-  var medAcc = medConf.length > 0 ? (medConfCorrect / medConf.length * 100).toFixed(1) : 0;
+  var medAcc = medConf.length > 0 ? (medConf.filter(function(p) { return p.is_correct; }).length / medConf.length * 100).toFixed(1) : 0;
 
   var predHome = historical.filter(function(p) { return p.prediction === 'Home Win'; }).length;
   var predDraw = historical.filter(function(p) { return p.prediction === 'Draw'; }).length;
@@ -363,8 +439,8 @@ function renderAnalytics() {
 
   var rows = [
     ['Overall Accuracy', acc + '% (' + correct + '/' + total + ')'],
-    ['High Confidence (70%+)', highAcc + '% (' + highConfCorrect + '/' + highConf.length + ')'],
-    ['Medium Confidence (50-69%)', medAcc + '% (' + medConfCorrect + '/' + medConf.length + ')'],
+    ['High Confidence (70%+)', highAcc + '% (' + highConf.filter(function(p){return p.is_correct}).length + '/' + highConf.length + ')'],
+    ['Medium Confidence (50-69%)', medAcc + '% (' + medConf.filter(function(p){return p.is_correct}).length + '/' + medConf.length + ')'],
     ['', ''],
     ['Actual Result Distribution', ''],
     ['  Home Wins', homeWins + ' (' + (total > 0 ? (homeWins/total*100).toFixed(1) : 0) + '%)'],
@@ -380,16 +456,12 @@ function renderAnalytics() {
   var tb = document.querySelector('#analytics-table tbody');
   tb.innerHTML = rows.map(function(r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('');
 
-  // Per-team accuracy
   var teamMap = {};
   historical.forEach(function(p) {
-    [p.home_team, p.away_team].forEach(function(t) {
-      if (!teamMap[t]) teamMap[t] = { predicted: 0, correct: 0 };
-    });
+    [p.home_team, p.away_team].forEach(function(t) { if (!teamMap[t]) teamMap[t] = { predicted: 0, correct: 0 }; });
     if (p.prediction === 'Home Win' && p.home_team) { teamMap[p.home_team].predicted++; if (p.is_correct) teamMap[p.home_team].correct++; }
     if (p.prediction === 'Away Win' && p.away_team) { teamMap[p.away_team].predicted++; if (p.is_correct) teamMap[p.away_team].correct++; }
   });
-
   var teamArr = Object.keys(teamMap).map(function(t) {
     var d = teamMap[t];
     return { team: t, predicted: d.predicted, correct: d.correct, acc: d.predicted > 0 ? (d.correct / d.predicted * 100).toFixed(1) : '-' };
@@ -403,6 +475,7 @@ function renderAnalytics() {
   renderTrendChart();
 }
 
+/* Data loading */
 function loadData() {
   Promise.all([
     fetch('/api/summary').then(function(r) { return r.json(); }),
@@ -413,7 +486,7 @@ function loadData() {
     summary = results[0].data || {};
     predictions = results[1].data || [];
     historical = results[2].data || [];
-    teams = results[3].data || [];
+    teams = results[3].data || {};
 
     renderSummary();
     renderPredictions();
@@ -427,32 +500,36 @@ function loadData() {
 
 function refreshData() {
   var btn = document.getElementById('refresh-btn');
-  btn.disabled = true;
-  btn.textContent = 'Updating...';
-  btn.classList.add('loading');
-
+  btn.disabled = true; btn.textContent = 'Updating...'; btn.classList.add('loading');
   fetch('/api/refresh', { method: 'POST' })
     .then(function(r) { return r.json(); })
     .then(function(res) {
-      btn.disabled = false;
-      btn.textContent = 'Update Now';
-      btn.classList.remove('loading');
-      if (res.success) {
-        showToast('Data refreshed successfully');
-        loadData();
-      } else {
-        showToast('Refresh failed: ' + (res.message || 'Unknown error'));
-      }
+      btn.disabled = false; btn.textContent = 'Update Now'; btn.classList.remove('loading');
+      if (res.success) { showToast('Data refreshed successfully'); loadData(); }
+      else { showToast('Refresh failed: ' + (res.message || 'Unknown error')); }
     })
-    .catch(function(err) {
-      btn.disabled = false;
-      btn.textContent = 'Update Now';
-      btn.classList.remove('loading');
+    .catch(function() {
+      btn.disabled = false; btn.textContent = 'Update Now'; btn.classList.remove('loading');
       showToast('Refresh failed: network error');
     });
 }
 
-// Initial load
+/* Init sortable tables and load data */
+makeSortable('pred-table', sortPredictions);
+makeSortable('hist-table', sortHistorical);
+makeSortable('stand-table', sortStandings);
+
+// Set initial sort indicator for standings
+var standPtsTh = document.querySelector('#stand-table th[data-key="points"]');
+if (standPtsTh) standPtsTh.classList.add('sort-desc');
+var histDateTh = document.querySelector('#hist-table th[data-key="date"]');
+if (histDateTh) histDateTh.classList.add('sort-desc');
+
+// Update theme button icon on load
+if (document.documentElement.getAttribute('data-theme') === 'dark') {
+  document.getElementById('theme-btn').innerHTML = '☉';
+}
+
 loadData();
 </script>
 </body>
