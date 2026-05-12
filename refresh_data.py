@@ -145,9 +145,69 @@ def fetch_csv_results():
     return matches
 
 
+def _load_env_key(key_name):
+    """Load an API key from .env file or environment variable."""
+    import os
+    val = os.environ.get(key_name, "").strip()
+    if val and "your_" not in val:
+        return val
+    env_path = ROOT_DIR / ".env"
+    if env_path.exists():
+        with open(env_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith(f"{key_name}="):
+                    val = line.split("=", 1)[1].strip()
+                    if val and "your_" not in val:
+                        return val
+    return None
+
+
 def fetch_upcoming_fixtures():
-    """Fetch upcoming PL fixtures from TheSportsDB."""
-    print("Fetching upcoming fixtures from TheSportsDB...")
+    """Fetch upcoming PL fixtures from football-data.org (primary) or TheSportsDB (fallback)."""
+    all_fixtures = []
+    seen = set()
+
+    # Try football-data.org first (better coverage, requires free API key)
+    api_key = _load_env_key("FOOTBALL_DATA_API_KEY")
+    if api_key:
+        print("Fetching upcoming fixtures from football-data.org...")
+        try:
+            url = "https://api.football-data.org/v4/competitions/PL/matches"
+            params = {"status": "SCHEDULED", "limit": 50}
+            r = requests.get(url, headers={"X-Auth-Token": api_key}, params=params, timeout=10)
+            if r.status_code == 200:
+                data = r.json()
+                for match in data.get("matches", []):
+                    home = normalize_team(match.get("homeTeam", {}).get("shortName", "") or
+                                          match.get("homeTeam", {}).get("name", ""))
+                    away = normalize_team(match.get("awayTeam", {}).get("shortName", "") or
+                                          match.get("awayTeam", {}).get("name", ""))
+                    date_str = (match.get("utcDate") or "")[:10]
+                    time_str = (match.get("utcDate") or "T15:00")[11:16] or "15:00"
+                    round_num = match.get("matchday", 0)
+                    venue = match.get("venue", "Unknown Stadium")
+                    key = f"{date_str}|{home}|{away}"
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    all_fixtures.append({
+                        "round": round_num,
+                        "date": date_str,
+                        "time": time_str,
+                        "home_team": home,
+                        "away_team": away,
+                        "venue": venue,
+                    })
+                print(f"  Found {len(all_fixtures)} fixtures from football-data.org")
+            else:
+                print(f"  football-data.org returned {r.status_code}, falling back to TheSportsDB")
+        except Exception as e:
+            print(f"  football-data.org failed ({e}), falling back to TheSportsDB")
+
+    # Fallback: TheSportsDB (free, no key needed)
+    if not all_fixtures:
+        print("Fetching upcoming fixtures from TheSportsDB...")
     all_fixtures = []
     seen = set()
 
