@@ -3,533 +3,457 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Soccer Predictions - AI Powered Football Analytics</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style-dark.css') }}" id="dark-mode-stylesheet" disabled>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<title>Soccer Predictions</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; font-size: 14px; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; border-bottom: 2px solid #4338ca; }
+.header h1 { font-size: 20px; font-weight: 700; color: #4338ca; }
+.btn-refresh { padding: 6px 14px; border: 1px solid #4338ca; border-radius: 6px; background: #fff; color: #4338ca; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-refresh:hover { background: #4338ca; color: #fff; }
+.btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-refresh.loading { background: #e0e7ff; color: #4338ca; }
+/* Tabs */
+.tabs { display: flex; background: #e5e7eb; border-bottom: 1px solid #d1d5db; position: sticky; top: 0; z-index: 10; }
+.tabs button { flex: 1; padding: 10px 8px; border: none; background: none; font-size: 13px; font-weight: 600; color: #6b7280; cursor: pointer; border-bottom: 3px solid transparent; }
+.tabs button.active { color: #4338ca; border-bottom-color: #4338ca; background: #fff; }
+/* Summary cards */
+.summary { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: #fff; border-bottom: 1px solid #e5e7eb; }
+.summary .card { min-width: 100px; padding: 10px 14px; background: #f0f0ff; border-radius: 6px; text-align: center; }
+.summary .card .num { font-size: 22px; font-weight: 700; color: #4338ca; }
+.summary .card .lbl { font-size: 11px; color: #6b7280; margin-top: 2px; }
+/* Tables */
+.table-wrap { overflow-x: auto; padding: 0; }
+table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
+th { background: #f9fafb; padding: 8px 10px; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e5e7eb; white-space: nowrap; position: sticky; top: 0; }
+td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; white-space: nowrap; }
+tr:hover td { background: #f9fafb; }
+/* Badges */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.tag-home { background: #d1fae5; color: #065f46; }
+.tag-draw { background: #fef3c7; color: #92400e; }
+.tag-away { background: #fee2e2; color: #991b1b; }
+.tag-correct { background: #d1fae5; color: #065f46; }
+.tag-wrong { background: #fee2e2; color: #991b1b; }
+.tag-conf-high { background: #d1fae5; color: #065f46; }
+.tag-conf-med { background: #fef3c7; color: #92400e; }
+.tag-conf-low { background: #fee2e2; color: #991b1b; }
+/* Section */
+.section { display: none; }
+.section.active { display: block; }
+/* Chart */
+.chart-wrap { padding: 12px; background: #fff; }
+.chart-wrap canvas { width: 100%; height: 200px; }
+/* Footer */
+footer { text-align: center; padding: 12px; font-size: 11px; color: #9ca3af; border-top: 1px solid #e5e7eb; background: #fff; margin-top: 16px; }
+/* Toast */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background: #1f2937; color: #fff; border-radius: 8px; font-size: 13px; z-index: 100; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+/* Responsive */
+@media (max-width: 600px) {
+.header h1 { font-size: 17px; }
+.btn-refresh { font-size: 11px; padding: 5px 10px; }
+.tabs button { font-size: 12px; padding: 8px 4px; }
+.summary .card { min-width: 80px; padding: 8px 10px; }
+.summary .card .num { font-size: 18px; }
+table { font-size: 12px; }
+th, td { padding: 5px 6px; }
+}
+</style>
 </head>
 <body>
-<!-- Hamburger Menu Button -->
-<button class="hamburger-menu" id="hamburger-menu" onclick="toggleMobileMenu()">
-<i class="fas fa-bars"></i>
-</button>
 
-<!-- Dark Mode Toggle -->
-<button class="dark-mode-toggle" id="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
-<i class="fas fa-moon"></i>
-</button>
-
-<!-- Mobile Navigation Menu -->
-<div class="mobile-nav-menu" id="mobile-nav-menu">
-<div class="mobile-nav-header">
-<div class="nav-brand">
-<i class="fas fa-futbol"></i>
-<span>SoccerAI</span>
-</div>
-<button class="close-menu" onclick="toggleMobileMenu()">
-<i class="fas fa-times"></i>
-</button>
-</div>
-<div class="mobile-nav-links">
-<a href="#predictions" class="mobile-nav-link" data-section="predictions" onclick="toggleMobileMenu()">
-<i class="fas fa-chart-line"></i> Predictions
-</a>
-<a href="#historical" class="mobile-nav-link" data-section="historical" onclick="toggleMobileMenu()">
-<i class="fas fa-history"></i> Historical
-</a>
-<a href="#teams" class="mobile-nav-link" data-section="teams" onclick="toggleMobileMenu()">
-<i class="fas fa-trophy"></i> Standings
-</a>
-<a href="#performance" class="mobile-nav-link" data-section="performance" onclick="toggleMobileMenu()">
-<i class="fas fa-chart-bar"></i> Analytics
-</a>
-</div>
+<div class="header">
+  <h1>SoccerAI - Premier League 2025-26</h1>
+  <button class="btn-refresh" id="refresh-btn" onclick="refreshData()">Update Now</button>
 </div>
 
-<!-- Mobile Navigation Overlay -->
-<div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="toggleMobileMenu()"></div>
+<div class="summary" id="summary"></div>
 
-<!-- Modern Navigation -->
-<nav class="modern-nav">
-<div class="nav-container">
-<div class="nav-brand">
-<i class="fas fa-futbol"></i>
-<span>SoccerAI</span>
+<div class="tabs">
+  <button class="active" onclick="showTab('predictions')">Predictions</button>
+  <button onclick="showTab('historical')">Historical</button>
+  <button onclick="showTab('standings')">Standings</button>
+  <button onclick="showTab('analytics')">Analytics</button>
 </div>
-<div class="nav-menu-left">
-<a href="#predictions" class="nav-link active" data-section="predictions">
-<i class="fas fa-chart-line"></i> Predictions
-</a>
-<a href="#historical" class="nav-link" data-section="historical">
-<i class="fas fa-history"></i> Historical
-</a>
-<a href="#teams" class="nav-link" data-section="teams">
-<i class="fas fa-trophy"></i> Standings
-</a>
-<a href="#performance" class="nav-link" data-section="performance">
-<i class="fas fa-chart-bar"></i> Analytics
-</a>
-</div>
-<div class="nav-stats">
-<div class="stat-badge">
-<span class="stat-value" id="nav-accuracy">--%</span>
-<span class="stat-label">Accuracy</span>
-</div>
-<button class="modern-btn nav-update-btn" onclick="updateFromAPI()" title="Update from API">
-<i class="fas fa-cloud-download-alt"></i> Update
-</button>
-</div>
-</div>
-</nav>
 
-<!-- Update Status Modal -->
-<div class="modal" id="update-modal">
-<div class="modal-content update-modal-content">
-<div class="modal-header">
-<h3 id="update-modal-title">Updating Predictions</h3>
-<button class="modal-close" onclick="closeUpdateModal()">
-<i class="fas fa-times"></i>
-</button>
+<div class="section active" id="predictions">
+<div class="table-wrap"><table id="pred-table"><thead><tr>
+<th>Date</th><th>Home</th><th>Away</th><th>Prediction</th><th>Confidence</th><th>Home%</th><th>Draw%</th><th>Away%</th><th>Result</th><th>Score</th>
+</tr></thead><tbody></tbody></table></div>
 </div>
-<div class="modal-body" id="update-modal-body">
-<div class="update-progress">
-<div class="update-spinner">
-<i class="fas fa-spinner fa-spin"></i>
+
+<div class="section" id="historical">
+<div class="table-wrap"><table id="hist-table"><thead><tr>
+<th>Date</th><th>Home</th><th>Away</th><th>Predicted</th><th>Actual</th><th>Score</th><th>Correct?</th><th>Confidence</th>
+</tr></thead><tbody></tbody></table></div>
 </div>
-<div class="update-status" id="update-status">
-<p>Initializing update process...</p>
+
+<div class="section" id="standings">
+<div class="table-wrap"><table id="stand-table"><thead><tr>
+<th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th><th>ELO</th><th>Form</th>
+</tr></thead><tbody></tbody></table></div>
 </div>
-<div class="update-steps" id="update-steps">
-<div class="update-step" id="step-1">
-<i class="fas fa-circle-notch fa-spin"></i>
-<span>Fetching data from APIs...</span>
+
+<div class="section" id="analytics">
+<div class="chart-wrap">
+  <h2 style="font-size:16px;margin-bottom:10px;color:#4338ca">Accuracy Trend by Week</h2>
+  <canvas id="trend-chart"></canvas>
 </div>
-<div class="update-step" id="step-2">
-<i class="far fa-circle"></i>
-<span>Processing predictions...</span>
+<div class="table-wrap" style="padding:12px">
+<h2 style="font-size:16px;margin-bottom:10px;color:#4338ca">Accuracy Breakdown</h2>
+<table id="analytics-table"><thead><tr>
+<th>Metric</th><th>Value</th>
+</tr></thead><tbody></tbody></table>
 </div>
-<div class="update-step" id="step-3">
-<i class="far fa-circle"></i>
-<span>Updating model...</span>
-</div>
-<div class="update-step" id="step-4">
-<i class="far fa-circle"></i>
-<span>Refreshing interface...</span>
-</div>
-</div>
-</div>
-</div>
+<div class="table-wrap" style="padding:0 12px 12px">
+<h2 style="font-size:16px;margin-bottom:10px;color:#4338ca">Accuracy by Team</h2>
+<table id="team-acc-table"><thead><tr>
+<th>Team</th><th>Predicted</th><th>Correct</th><th>Accuracy</th>
+</tr></thead><tbody></tbody></table>
 </div>
 </div>
 
-<!-- Hero Section (Simplified) -->
-<section class="hero-section">
-<div class="hero-content">
-<div class="hero-text">
-<h1 class="hero-title">
-<span class="gradient-text">SoccerAI</span>
-</h1>
-</div>
-</div>
-</section>
+<div class="toast" id="toast"></div>
 
-<!-- Insights Section -->
-<section class="insights-section" id="insights-container">
-<div class="section-header">
-<h2 class="section-title">
-<i class="fas fa-lightbulb"></i>
-Season Insights
-</h2>
-<p class="section-subtitle">AI-powered analysis and key statistics</p>
-</div>
-<div class="insights-grid" id="insights-grid">
-<div class="loading">
-<i class="fas fa-spinner fa-spin"></i>
-<p>Loading insights...</p>
-</div>
-</div>
-</section>
-
-<!-- Main Content -->
-<main class="main-content">
-<!-- Predictions Section -->
-<section class="content-section active" id="predictions-section">
-<div class="section-header">
-<div>
-<h2 class="section-title">Match Predictions</h2>
-<p class="section-subtitle">Current season AI-powered predictions</p>
-</div>
-<button class="modern-btn" onclick="refreshPredictions()">
-<i class="fas fa-sync-alt"></i> Refresh
-</button>
-</div>
-
-<!-- Prediction Stats -->
-<div class="historical-stats" id="prediction-stats">
-<div class="stat-card">
-<div class="stat-icon"><i class="fas fa-futbol"></i></div>
-<div class="stat-info">
-<h3>Total Matches</h3>
-<p class="stat-value" id="pred-total">--</p>
-</div>
-</div>
-<div class="stat-card">
-<div class="stat-icon"><i class="fas fa-chart-line"></i></div>
-<div class="stat-info">
-<h3>High Confidence</h3>
-<p class="stat-value" id="pred-high-confidence">--</p>
-</div>
-</div>
-<div class="stat-card">
-<div class="stat-icon"><i class="fas fa-home"></i></div>
-<div class="stat-info">
-<h3>Home Wins</h3>
-<p class="stat-value" id="pred-home-wins">--</p>
-</div>
-</div>
-<div class="stat-card">
-<div class="stat-icon"><i class="fas fa-handshake"></i></div>
-<div class="stat-info">
-<h3>Draws</h3>
-<p class="stat-value" id="pred-draws">--</p>
-</div>
-</div>
-<div class="stat-card">
-<div class="stat-icon"><i class="fas fa-plane"></i></div>
-<div class="stat-info">
-<h3>Away Wins</h3>
-<p class="stat-value" id="pred-away-wins">--</p>
-</div>
-</div>
-</div>
-
-<!-- Date Filter -->
-<div class="date-filter-section">
-<div class="filter-controls">
-<div class="filter-group">
-<label for="pred-date-from">From:</label>
-<input type="date" id="pred-date-from" class="filter-input">
-</div>
-<div class="filter-group">
-<label for="pred-date-to">To:</label>
-<input type="date" id="pred-date-to" class="filter-input">
-</div>
-<div class="filter-group">
-<label for="pred-confidence-filter">Min Confidence:</label>
-<select id="pred-confidence-filter" class="filter-select">
-<option value="0">All</option>
-<option value="50">50%+</option>
-<option value="60">60%+</option>
-<option value="70">70%+</option>
-<option value="80">80%+</option>
-</select>
-</div>
-<div class="filter-group">
-<label for="pred-prediction-filter">Prediction:</label>
-<select id="pred-prediction-filter" class="filter-select">
-<option value="all">All</option>
-<option value="Home Win">Home Win</option>
-<option value="Draw">Draw</option>
-<option value="Away Win">Away Win</option>
-</select>
-</div>
-<button class="modern-btn" onclick="applyPredictionFilter()">
-<i class="fas fa-filter"></i> Filter
-</button>
-<button class="modern-btn secondary" onclick="clearPredictionFilter()">
-<i class="fas fa-times"></i> Clear
-</button>
-</div>
-<div class="filter-info" id="pred-filter-info">Showing all predictions</div>
-</div>
-
-<div class="predictions-grid" id="predictions-list">
-<div class="loading">
-<i class="fas fa-spinner fa-spin"></i>
-<p>Loading predictions...</p>
-</div>
-</div>
-</section>
-
-<!-- Historical Section (Enhanced with search & pagination) -->
-<section class="content-section" id="historical-section">
-<div class="section-header">
-<div>
-<h2 class="section-title">Historical Accuracy</h2>
-<p class="section-subtitle">Track prediction performance over time</p>
-</div>
-<button class="modern-btn" onclick="updateHistorical()">
-<i class="fas fa-sync-alt"></i> Update
-</button>
-</div>
-
-<div class="historical-stats" id="historical-stats">
-<div class="stat-card">
-<div class="stat-icon"><i class="fas fa-bullseye"></i></div>
-<div class="stat-info">
-<h3>Accuracy</h3>
-<p class="stat-value" id="hist-accuracy">--%</p>
-</div>
-</div>
-<div class="stat-card">
-<div class="stat-icon"><i class="fas fa-database"></i></div>
-<div class="stat-info">
-<h3>Total</h3>
-<p class="stat-value" id="hist-total">--</p>
-</div>
-</div>
-<div class="stat-card">
-<div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-<div class="stat-info">
-<h3>Correct</h3>
-<p class="stat-value" id="hist-correct">--</p>
-</div>
-</div>
-</div>
-
-<!-- Enhanced Search & Filter -->
-<div class="date-filter-section">
-<div class="filter-controls">
-<div class="filter-group" style="flex: 2; min-width: 200px;">
-<label for="hist-team-search">Team Search:</label>
-<input type="text" id="hist-team-search" class="filter-input" placeholder="Search team name..." onkeyup="debounceHistoricalSearch()">
-</div>
-<div class="filter-group">
-<label for="hist-result-filter">Result:</label>
-<select id="hist-result-filter" class="filter-select" onchange="searchHistorical()">
-<option value="">All Results</option>
-<option value="Home Win">Home Win</option>
-<option value="Draw">Draw</option>
-<option value="Away Win">Away Win</option>
-</select>
-</div>
-<div class="filter-group">
-<label for="hist-prediction-filter">Prediction:</label>
-<select id="hist-prediction-filter" class="filter-select" onchange="searchHistorical()">
-<option value="">All</option>
-<option value="Home Win">Home Win</option>
-<option value="Draw">Draw</option>
-<option value="Away Win">Away Win</option>
-</select>
-</div>
-<div class="filter-group">
-<label for="hist-conf-min">Min Conf:</label>
-<input type="number" id="hist-conf-min" class="filter-input" value="0" min="0" max="100" style="min-width:80px" onchange="searchHistorical()">
-</div>
-<div class="filter-group">
-<label for="hist-conf-max">Max Conf:</label>
-<input type="number" id="hist-conf-max" class="filter-input" value="100" min="0" max="100" style="min-width:80px" onchange="searchHistorical()">
-</div>
-</div>
-<div class="filter-controls" style="margin-top: 0.75rem;">
-<div class="filter-group">
-<label for="date-from">From:</label>
-<input type="date" id="date-from" class="filter-input" onchange="searchHistorical()">
-</div>
-<div class="filter-group">
-<label for="date-to">To:</label>
-<input type="date" id="date-to" class="filter-input" onchange="searchHistorical()">
-</div>
-<button class="modern-btn secondary" onclick="clearHistoricalSearch()">
-<i class="fas fa-times"></i> Clear Filters
-</button>
-</div>
-<div class="filter-info" id="filter-info">
-<i class="fas fa-list"></i> Showing all matches
-</div>
-</div>
-
-<!-- Historical search results with pagination -->
-<div class="historical-list" id="historical-list">
-<div class="loading">
-<i class="fas fa-spinner fa-spin"></i>
-<p>Loading historical data...</p>
-</div>
-</div>
-<!-- Pagination -->
-<div class="pagination" id="historical-pagination"></div>
-</section>
-
-<!-- Teams Section -->
-<section class="content-section" id="teams-section">
-<div class="section-header">
-<div>
-<h2 class="section-title">League Standings</h2>
-<p class="section-subtitle">Current Premier League table</p>
-</div>
-</div>
-<div class="teams-grid" id="teams-list">
-<div class="loading">
-<i class="fas fa-spinner fa-spin"></i>
-<p>Loading standings...</p>
-</div>
-</div>
-</section>
-
-<!-- Performance Section (Enhanced with Charts) -->
-<section class="content-section" id="performance-section">
-<div class="section-header">
-<div>
-<h2 class="section-title">Analytics Dashboard</h2>
-<p class="section-subtitle">Interactive charts and season analytics</p>
-</div>
-<div class="table-controls">
-<button class="modern-btn" onclick="refreshChartData()">
-<i class="fas fa-sync-alt"></i> Refresh
-</button>
-</div>
-</div>
-
-<!-- Chart Grid -->
-<div class="charts-grid">
-<div class="chart-card">
-<div class="chart-header">
-<h3><i class="fas fa-chart-line"></i> Accuracy Over Time</h3>
-<p>Monthly prediction accuracy trend</p>
-</div>
-<div class="chart-container">
-<canvas id="accuracy-chart"></canvas>
-</div>
-</div>
-
-<div class="chart-card">
-<div class="chart-header">
-<h3><i class="fas fa-chart-pie"></i> Result Distribution</h3>
-<p>Breakdown of actual match outcomes</p>
-</div>
-<div class="chart-container chart-container-sm">
-<canvas id="distribution-chart"></canvas>
-</div>
-</div>
-
-<div class="chart-card">
-<div class="chart-header">
-<h3><i class="fas fa-bullseye"></i> Confidence Calibration</h3>
-<p>Accuracy by confidence bucket</p>
-</div>
-<div class="chart-container">
-<canvas id="calibration-chart"></canvas>
-</div>
-</div>
-
-<div class="chart-card">
-<div class="chart-header">
-<h3><i class="fas fa-trophy"></i> Top Teams by ELO</h3>
-<p>Current ELO ratings for top 10 teams</p>
-</div>
-<div class="chart-container">
-<canvas id="elo-chart"></canvas>
-</div>
-</div>
-</div>
-
-<!-- Historical Data Table (kept below charts) -->
-<div style="margin-top: 2rem;">
-<div class="section-header" style="margin-bottom: 1rem;">
-<div>
-<h2 class="section-title" style="font-size: 1.5rem;">Historical Data Table</h2>
-<p class="section-subtitle">Complete Premier League 2025-2026 season data</p>
-</div>
-<div class="table-controls">
-<button class="modern-btn" onclick="refreshHistoricalData()">
-<i class="fas fa-sync-alt"></i> Refresh Data
-</button>
-<button class="modern-btn" onclick="exportTable()">
-<i class="fas fa-download"></i> Export CSV
-</button>
-</div>
-</div>
-<div class="data-table-container" id="data-table-container">
-<div class="loading">
-<i class="fas fa-spinner fa-spin"></i>
-<p>Loading historical data...</p>
-</div>
-</div>
-</div>
-</section>
-</main>
-
-<!-- Footer -->
-<footer class="modern-footer">
-<div class="footer-content">
-<div class="footer-brand">
-<i class="fas fa-futbol"></i>
-<span>SoccerAI</span>
-</div>
-<div class="footer-links">
-<a href="#predictions">Predictions</a>
-<a href="#historical">Historical</a>
-<a href="#teams">Standings</a>
-<a href="#performance">Analytics</a>
-</div>
-<div class="footer-info">
-<p>Last updated: <span id="last-updated">--</span></p>
-<p>Powered by AI & Machine Learning</p>
-</div>
-</div>
-</footer>
-
-<!-- Match Detail Modal (Enhanced) -->
-<div class="modal" id="match-modal">
-<div class="modal-content match-detail-modal">
-<div class="modal-header">
-<h3 id="modal-title">Match Details</h3>
-<button class="modal-close" onclick="closeModal()">
-<i class="fas fa-times"></i>
-</button>
-</div>
-<div class="modal-body" id="modal-body">
-<!-- Match details will be loaded here -->
-</div>
-</div>
-</div>
-
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
-<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
-
-<!-- Mobile Bottom Tab Bar -->
-<nav class="mobile-bottom-nav" id="mobile-bottom-nav">
-<div class="bottom-nav-items">
-<a class="bottom-nav-item active" data-section="predictions" onclick="switchSection('predictions')">
-<i class="fas fa-chart-line"></i>
-<span>Predictions</span>
-</a>
-<a class="bottom-nav-item" data-section="historical" onclick="switchSection('historical')">
-<i class="fas fa-history"></i>
-<span>Historical</span>
-</a>
-<a class="bottom-nav-item" data-section="teams" onclick="switchSection('teams')">
-<i class="fas fa-trophy"></i>
-<span>Standings</span>
-</a>
-<a class="bottom-nav-item" data-section="performance" onclick="switchSection('performance')">
-<i class="fas fa-chart-bar"></i>
-<span>Analytics</span>
-</a>
-</div>
-</nav>
+<footer>SoccerAI &middot; Data updated <span id="last-updated">-</span></footer>
 
 <script>
-// Hook chart loading and historical search into the existing load flow
-var _origLoadAll = loadAllData;
-loadAllData = async function() {
-  await _origLoadAll();
-  loadChartData();
-  searchHistorical();
-};
+var predictions = [];
+var historical = [];
+var teams = [];
+var summary = {};
 
-var _origSwitch = switchSection;
-switchSection = function(sectionName) {
-  _origSwitch(sectionName);
-  if (sectionName === 'historical' && !document.getElementById('historical-list').querySelector('.prediction-card')) {
-    searchHistorical();
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.querySelectorAll('.tabs button').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById(name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function tag(text, cls) { return '<span class="tag ' + cls + '">' + text + '</span>'; }
+
+function resultTag(result) {
+  if (result === 'Home Win') return tag('H', 'tag-home');
+  if (result === 'Draw') return tag('D', 'tag-draw');
+  if (result === 'Away Win') return tag('A', 'tag-away');
+  return result || '-';
+}
+
+function confTag(conf) {
+  var cls = conf >= 70 ? 'tag-conf-high' : conf >= 50 ? 'tag-conf-med' : 'tag-conf-low';
+  return tag(conf + '%', cls);
+}
+
+function correctTag(ok) {
+  return ok ? tag('Yes', 'tag-correct') : ok === false ? tag('No', 'tag-wrong') : '-';
+}
+
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 3000);
+}
+
+function renderSummary() {
+  var s = summary;
+  var html = '';
+  html += '<div class="card"><div class="num">' + (s.accuracy || 0) + '%</div><div class="lbl">Accuracy</div></div>';
+  html += '<div class="card"><div class="num">' + (s.total_historical || 0) + '</div><div class="lbl">Matches</div></div>';
+  html += '<div class="card"><div class="num">' + (s.teams || 0) + '</div><div class="lbl">Teams</div></div>';
+  html += '<div class="card"><div class="num">' + (s.weeks_available || 0) + '</div><div class="lbl">Weeks</div></div>';
+  document.getElementById('summary').innerHTML = html;
+  document.getElementById('last-updated').textContent = s.last_updated || '-';
+}
+
+function renderPredictions() {
+  var tb = document.querySelector('#pred-table tbody');
+  var rows = predictions.map(function(p) {
+    var result = p.actual_result && p.actual_result !== 'Not Played' ? resultTag(p.actual_result) : '-';
+    var score = (p.home_goals != null && p.away_goals != null) ? p.home_goals + '-' + p.away_goals : '-';
+    return '<tr>'
+      + '<td>' + (p.date || '').split(' ')[0] + '</td>'
+      + '<td>' + p.home_team + '</td>'
+      + '<td>' + p.away_team + '</td>'
+      + '<td>' + resultTag(p.prediction) + '</td>'
+      + '<td>' + confTag(p.confidence) + '</td>'
+      + '<td>' + (p.home_win_prob || p.home_prob || 0) + '</td>'
+      + '<td>' + (p.draw_prob || 0) + '</td>'
+      + '<td>' + (p.away_win_prob || p.away_prob || 0) + '</td>'
+      + '<td>' + result + '</td>'
+      + '<td>' + score + '</td>'
+      + '</tr>';
+  });
+  tb.innerHTML = rows.join('');
+}
+
+function renderHistorical() {
+  var tb = document.querySelector('#hist-table tbody');
+  var sorted = historical.slice().sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
+  var rows = sorted.map(function(p) {
+    var score = (p.home_goals != null && p.away_goals != null) ? p.home_goals + '-' + p.away_goals : '-';
+    return '<tr>'
+      + '<td>' + (p.date || '').split(' ')[0] + '</td>'
+      + '<td>' + p.home_team + '</td>'
+      + '<td>' + p.away_team + '</td>'
+      + '<td>' + resultTag(p.prediction) + '</td>'
+      + '<td>' + resultTag(p.actual) + '</td>'
+      + '<td>' + score + '</td>'
+      + '<td>' + correctTag(p.is_correct) + '</td>'
+      + '<td>' + confTag(p.confidence) + '</td>'
+      + '</tr>';
+  });
+  tb.innerHTML = rows.join('');
+}
+
+function renderStandings() {
+  var tb = document.querySelector('#stand-table tbody');
+  var sorted = teams.slice().sort(function(a, b) { return (b.points || 0) - (a.points || 0); });
+  var rows = sorted.map(function(t, i) {
+    return '<tr>'
+      + '<td>' + (i + 1) + '</td>'
+      + '<td><b>' + t.team + '</b></td>'
+      + '<td>' + (t.matches || 0) + '</td>'
+      + '<td>' + (t.wins || 0) + '</td>'
+      + '<td>' + (t.draws || 0) + '</td>'
+      + '<td>' + (t.losses || 0) + '</td>'
+      + '<td>' + (t.goals_for || 0) + '</td>'
+      + '<td>' + (t.goals_against || 0) + '</td>'
+      + '<td>' + (t.goal_difference > 0 ? '+' : '') + (t.goal_difference || 0) + '</td>'
+      + '<td><b>' + (t.points || 0) + '</b></td>'
+      + '<td>' + (t.elo || 0) + '</td>'
+      + '<td>' + (t.form || '-') + '</td>'
+      + '</tr>';
+  });
+  tb.innerHTML = rows.join('');
+}
+
+function renderTrendChart() {
+  // Compute accuracy by month
+  var monthData = {};
+  historical.forEach(function(p) {
+    var m = p.date ? p.date.substring(0, 7) : '';
+    if (!m) return;
+    if (!monthData[m]) monthData[m] = { total: 0, correct: 0 };
+    monthData[m].total++;
+    if (p.is_correct) monthData[m].correct++;
+  });
+  var months = Object.keys(monthData).sort();
+  var accs = months.map(function(m) { return monthData[m].total > 0 ? (monthData[m].correct / monthData[m].total * 100) : 0; });
+  var counts = months.map(function(m) { return monthData[m].total; });
+
+  if (months.length === 0) return;
+
+  var canvas = document.getElementById('trend-chart');
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var w = canvas.parentElement.clientWidth - 24;
+  var h = 200;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.scale(dpr, dpr);
+
+  var pad = { top: 20, right: 20, bottom: 40, left: 40 };
+  var cw = w - pad.left - pad.right;
+  var ch = h - pad.top - pad.bottom;
+
+  // Background
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, w, h);
+
+  // Grid lines
+  ctx.strokeStyle = '#e5e7eb';
+  ctx.lineWidth = 1;
+  for (var pct = 0; pct <= 100; pct += 25) {
+    var y = pad.top + ch - (pct / 100 * ch);
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(pad.left + cw, y);
+    ctx.stroke();
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(pct + '%', pad.left - 6, y + 4);
   }
-  if (sectionName === 'performance') {
-    if (chartData) { renderAllCharts(); } else { loadChartData(); }
+
+  // Average line
+  var avg = accs.length > 0 ? accs.reduce(function(a, b) { return a + b; }) / accs.length : 0;
+  var avgY = pad.top + ch - (avg / 100 * ch);
+  ctx.strokeStyle = '#f59e0b';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(pad.left, avgY);
+  ctx.lineTo(pad.left + cw, avgY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Line + area
+  var n = months.length;
+  if (n === 1) {
+    var x = pad.left + cw / 2;
+    var y = pad.top + ch - (accs[0] / 100 * ch);
+    ctx.fillStyle = '#4338ca';
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.beginPath();
+    for (var i = 0; i < n; i++) {
+      var x = pad.left + (i / (n - 1)) * cw;
+      var y = pad.top + ch - (accs[i] / 100 * ch);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#4338ca';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Area fill
+    ctx.lineTo(pad.left + cw, pad.top + ch);
+    ctx.lineTo(pad.left, pad.top + ch);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(67, 56, 202, 0.08)';
+    ctx.fill();
+
+    // Dots
+    for (var i = 0; i < n; i++) {
+      var x = pad.left + (i / (n - 1)) * cw;
+      var y = pad.top + ch - (accs[i] / 100 * ch);
+      ctx.fillStyle = '#4338ca';
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
-};
+
+  // X labels
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'center';
+  var step = Math.max(1, Math.floor(months.length / 8));
+  for (var i = 0; i < n; i += step) {
+    var x = pad.left + (n === 1 ? cw / 2 : (i / (n - 1)) * cw);
+    ctx.fillText(months[i].substring(5), x, h - pad.bottom + 16);
+  }
+}
+
+function renderAnalytics() {
+  var total = historical.length;
+  var correct = historical.filter(function(p) { return p.is_correct; }).length;
+  var acc = total > 0 ? (correct / total * 100).toFixed(1) : 0;
+
+  var homeWins = historical.filter(function(p) { return p.actual === 'Home Win'; }).length;
+  var draws = historical.filter(function(p) { return p.actual === 'Draw'; }).length;
+  var awayWins = historical.filter(function(p) { return p.actual === 'Away Win'; }).length;
+
+  var highConf = historical.filter(function(p) { return p.confidence >= 70; });
+  var highConfCorrect = highConf.filter(function(p) { return p.is_correct; }).length;
+  var highAcc = highConf.length > 0 ? (highConfCorrect / highConf.length * 100).toFixed(1) : 0;
+
+  var medConf = historical.filter(function(p) { return p.confidence >= 50 && p.confidence < 70; });
+  var medConfCorrect = medConf.filter(function(p) { return p.is_correct; }).length;
+  var medAcc = medConf.length > 0 ? (medConfCorrect / medConf.length * 100).toFixed(1) : 0;
+
+  var predHome = historical.filter(function(p) { return p.prediction === 'Home Win'; }).length;
+  var predDraw = historical.filter(function(p) { return p.prediction === 'Draw'; }).length;
+  var predAway = historical.filter(function(p) { return p.prediction === 'Away Win'; }).length;
+
+  var rows = [
+    ['Overall Accuracy', acc + '% (' + correct + '/' + total + ')'],
+    ['High Confidence (70%+)', highAcc + '% (' + highConfCorrect + '/' + highConf.length + ')'],
+    ['Medium Confidence (50-69%)', medAcc + '% (' + medConfCorrect + '/' + medConf.length + ')'],
+    ['', ''],
+    ['Actual Result Distribution', ''],
+    ['  Home Wins', homeWins + ' (' + (total > 0 ? (homeWins/total*100).toFixed(1) : 0) + '%)'],
+    ['  Draws', draws + ' (' + (total > 0 ? (draws/total*100).toFixed(1) : 0) + '%)'],
+    ['  Away Wins', awayWins + ' (' + (total > 0 ? (awayWins/total*100).toFixed(1) : 0) + '%)'],
+    ['', ''],
+    ['Predictions Made', ''],
+    ['  Home Win', predHome],
+    ['  Draw', predDraw],
+    ['  Away Win', predAway],
+  ];
+
+  var tb = document.querySelector('#analytics-table tbody');
+  tb.innerHTML = rows.map(function(r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('');
+
+  // Per-team accuracy
+  var teamMap = {};
+  historical.forEach(function(p) {
+    [p.home_team, p.away_team].forEach(function(t) {
+      if (!teamMap[t]) teamMap[t] = { predicted: 0, correct: 0 };
+    });
+    if (p.prediction === 'Home Win' && p.home_team) { teamMap[p.home_team].predicted++; if (p.is_correct) teamMap[p.home_team].correct++; }
+    if (p.prediction === 'Away Win' && p.away_team) { teamMap[p.away_team].predicted++; if (p.is_correct) teamMap[p.away_team].correct++; }
+  });
+
+  var teamArr = Object.keys(teamMap).map(function(t) {
+    var d = teamMap[t];
+    return { team: t, predicted: d.predicted, correct: d.correct, acc: d.predicted > 0 ? (d.correct / d.predicted * 100).toFixed(1) : '-' };
+  }).filter(function(t) { return t.predicted >= 5; }).sort(function(a, b) { return parseFloat(b.acc || 0) - parseFloat(a.acc || 0); });
+
+  var tb2 = document.querySelector('#team-acc-table tbody');
+  tb2.innerHTML = teamArr.map(function(t) {
+    return '<tr><td>' + t.team + '</td><td>' + t.predicted + '</td><td>' + t.correct + '</td><td>' + t.acc + '%</td></tr>';
+  }).join('');
+
+  renderTrendChart();
+}
+
+function loadData() {
+  Promise.all([
+    fetch('/api/summary').then(function(r) { return r.json(); }),
+    fetch('/api/predictions').then(function(r) { return r.json(); }),
+    fetch('/api/historical').then(function(r) { return r.json(); }),
+    fetch('/api/teams').then(function(r) { return r.json(); })
+  ]).then(function(results) {
+    summary = results[0].data || {};
+    predictions = results[1].data || [];
+    historical = results[2].data || [];
+    teams = results[3].data || [];
+
+    renderSummary();
+    renderPredictions();
+    renderHistorical();
+    renderStandings();
+    renderAnalytics();
+  }).catch(function(err) {
+    console.error('Failed to load data:', err);
+  });
+}
+
+function refreshData() {
+  var btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.textContent = 'Updating...';
+  btn.classList.add('loading');
+
+  fetch('/api/refresh', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      btn.disabled = false;
+      btn.textContent = 'Update Now';
+      btn.classList.remove('loading');
+      if (res.success) {
+        showToast('Data refreshed successfully');
+        loadData();
+      } else {
+        showToast('Refresh failed: ' + (res.message || 'Unknown error'));
+      }
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'Update Now';
+      btn.classList.remove('loading');
+      showToast('Refresh failed: network error');
+    });
+}
+
+// Initial load
+loadData();
 </script>
 </body>
 </html>
