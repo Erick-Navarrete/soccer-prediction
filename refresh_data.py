@@ -287,7 +287,7 @@ def fetch_upcoming_fixtures():
     return all_fixtures
 
 
-DRAW_MARGIN = 12  # predict Draw when gap between top and draw_prob < this
+DRAW_MARGIN = 8 # predict Draw when gap between top and draw_prob < this
 
 
 def elo_predict(home_elo, away_elo, home_advantage=HOME_ADVANTAGE):
@@ -520,11 +520,12 @@ def ml_predict_upcoming(upcoming_fixtures):
     return results
 
 
-def blend_predictions(elo_pred, ml_pred, ml_weight=0.35):
+def blend_predictions(elo_pred, ml_pred, ml_weight=0.50):
     """Blend ELO and ML predictions.
 
-    ML model trained without odds features gets ~51% CV accuracy vs ELO's ~50%.
-    Use 65/35 ELO/ML split, with ML weight reduced when it seems uncertain.
+    ML model trained without odds features gets ~48% OOS accuracy vs ELO's ~50%.
+    Use 50/50 ELO/ML split (backtested to 51.3% OOS with margin=8),
+    with ML weight reduced when it seems uncertain.
     Apply draw margin threshold after blending.
     """
     if not ml_pred:

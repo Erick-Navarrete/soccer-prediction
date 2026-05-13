@@ -4,12 +4,12 @@
   "weeks_available": 35,
   "teams": 20,
   "accuracy": 49.9,
-  "last_updated": "2026-05-13 00:11:40",
+  "last_updated": "2026-05-13 02:20:03",
   "current_week": 20,
   "high_confidence": 3,
-  "medium_confidence": 6,
-  "low_confidence": 12,
+  "medium_confidence": 5,
+  "low_confidence": 13,
   "home_wins_predicted": 13,
-  "draws_predicted": 4,
-  "away_wins_predicted": 4
+  "draws_predicted": 1,
+  "away_wins_predicted": 7
 }
