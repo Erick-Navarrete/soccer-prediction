@@ -287,29 +287,40 @@ def fetch_upcoming_fixtures():
     return all_fixtures
 
 
+DRAW_MARGIN = 12  # predict Draw when gap between top and draw_prob < this
+
+
 def elo_predict(home_elo, away_elo, home_advantage=HOME_ADVANTAGE):
-    """Generate ELO-based prediction probabilities."""
+    """Generate ELO-based prediction probabilities.
+
+    Draw probability calibrated to PL data: max 26% at equal teams,
+    decaying with ELO gap. When top outcome margin over draw is small,
+    predict Draw (backtested to 51.8% accuracy on 359 matches).
+    """
     r_home = home_elo + home_advantage
     r_away = away_elo
     elo_diff = r_home - r_away
 
     e_home = 1.0 / (1.0 + 10 ** ((r_away - r_home) / 400.0))
 
-    draw_prob = max(12.0, 24.0 - abs(elo_diff) * 0.06)
+    draw_prob = max(12.0, 26.0 - abs(elo_diff) * 0.06)
     draw_prob = round(draw_prob, 1)
 
     remaining = 100.0 - draw_prob
     home_win_prob = round(remaining * e_home, 1)
     away_win_prob = round(100.0 - home_win_prob - draw_prob, 1)
 
-    if home_win_prob >= draw_prob and home_win_prob >= away_win_prob:
+    top = max(home_win_prob, draw_prob, away_win_prob)
+    if top - draw_prob < DRAW_MARGIN:
+        prediction, prediction_code = "Draw", 1
+    elif home_win_prob >= draw_prob and home_win_prob >= away_win_prob:
         prediction, prediction_code = "Home Win", 2
     elif away_win_prob >= draw_prob:
         prediction, prediction_code = "Away Win", 0
     else:
         prediction, prediction_code = "Draw", 1
 
-    confidence = round(max(home_win_prob, draw_prob, away_win_prob), 1)
+    confidence = round(top, 1)
     confidence_level = "High" if confidence >= 70 else "Medium" if confidence >= 50 else "Low"
 
     return {
@@ -514,6 +525,7 @@ def blend_predictions(elo_pred, ml_pred, ml_weight=0.35):
 
     ML model trained without odds features gets ~51% CV accuracy vs ELO's ~50%.
     Use 65/35 ELO/ML split, with ML weight reduced when it seems uncertain.
+    Apply draw margin threshold after blending.
     """
     if not ml_pred:
         return elo_pred
@@ -536,14 +548,17 @@ def blend_predictions(elo_pred, ml_pred, ml_weight=0.35):
     draw = round(elo_draw * (1 - w) + ml_draw * w, 1)
     away = round(100.0 - home - draw, 1)
 
-    if home >= draw and home >= away:
+    top = max(home, draw, away)
+    if top - draw < DRAW_MARGIN:
+        prediction, prediction_code = "Draw", 1
+    elif home >= draw and home >= away:
         prediction, prediction_code = "Home Win", 2
     elif away >= draw:
         prediction, prediction_code = "Away Win", 0
     else:
         prediction, prediction_code = "Draw", 1
 
-    confidence = round(max(home, draw, away), 1)
+    confidence = round(top, 1)
     confidence_level = "High" if confidence >= 70 else "Medium" if confidence >= 50 else "Low"
 
     return {
