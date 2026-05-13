@@ -3,20 +3,16 @@ services:
     name: soccer-predictions
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: cd web && python app.py
+    buildCommand: pip install -r requirements.txt && python seed_data.py
+    startCommand: gunicorn --chdir web app:app
     envVars:
       - key: PORT
         value: 5000
       - key: FLASK_ENV
         value: production
     healthCheckPath: /
-
-# Cron job for scheduled updates (every 6 hours)
-crons:
-  - name: update-predictions
-    schedule: "0 */6 * * *"
-    command: python src/update_predictions.py
-    envVars:
-      - key: FLASK_ENV
-        value: production
+    # Cron job for scheduled data refresh (every 6 hours)
+    crons:
+      - name: update-predictions
+        schedule: "0 */6 * * *"
+        command: python refresh_data.py
