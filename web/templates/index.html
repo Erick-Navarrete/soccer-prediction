@@ -3,47 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Soccer Predictions</title>
+<title>PremPredictor</title>
 <style>
 :root {
---bg: #f5f5f5; --surface: #fff; --surface2: #f9fafb; --border: #e5e7eb; --border2: #f3f4f6;
---text: #333; --text2: #374151; --text3: #6b7280; --text4: #9ca3af;
---primary: #4338ca; --primary-light: #f0f0ff; --primary-bg: #e0e7ff;
+--bg: #f5f5f5; --surface: #fff; --surface2: #eef3f2; --border: #c8d8d6; --border2: #dde9e7;
+--text: #27363b; --text2: #2f4a4f; --text3: #637b81; --text4: #8da0a5;
+--primary: #75b2ad; --primary-light: #e8f2f1; --primary-bg: #d0e6e4;
 --tag-home-bg: #d1fae5; --tag-home-fg: #065f46;
 --tag-draw-bg: #fef3c7; --tag-draw-fg: #92400e;
 --tag-away-bg: #fee2e2; --tag-away-fg: #991b1b;
---chart-fill: rgba(67,56,202,0.08); --avg-line: #f59e0b;
+--chart-fill: rgba(117,178,173,0.10); --avg-line: #e8a838;
 }
 [data-theme="dark"] {
---bg: #111827; --surface: #1f2937; --surface2: #374151; --border: #374151; --border2: #4b5563;
---text: #e5e7eb; --text2: #d1d5db; --text3: #9ca3af; --text4: #6b7280;
---primary: #818cf8; --primary-light: #1e1b4b; --primary-bg: #312e81;
+--bg: #1a2a2e; --surface: #27363b; --surface2: #2f4a4f; --border: #3d5c5f; --border2: #425e5e;
+--text: #f5f5f5; --text2: #dde9e7; --text3: #8da0a5; --text4: #637b81;
+--primary: #75b2ad; --primary-light: #1e3a3d; --primary-bg: #2a4e50;
 --tag-home-bg: #064e3b; --tag-home-fg: #6ee7b7;
 --tag-draw-bg: #78350f; --tag-draw-fg: #fcd34d;
 --tag-away-bg: #7f1d1d; --tag-away-fg: #fca5a5;
---chart-fill: rgba(129,140,248,0.12); --avg-line: #fbbf24;
+--chart-fill: rgba(117,178,173,0.12); --avg-line: #e8a838;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; transition: background 0.2s, color 0.2s; }
 /* Header */
-.header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--surface); border-bottom: 2px solid var(--primary); }
-.header h1 { font-size: 20px; font-weight: 700; color: var(--primary); }
-.header h1 .badge { font-size: 10px; font-weight: 600; background: var(--primary-bg); color: var(--primary); padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--primary); border-bottom: none; }
+.header h1 { font-size: 20px; font-weight: 700; color: #f5f5f5; }
+.header h1 .badge { font-size: 10px; font-weight: 600; background: rgba(255,255,255,0.2); color: #f5f5f5; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
 .header-actions { display: flex; gap: 8px; align-items: center; }
-.btn-icon { width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-.btn-icon:hover { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); }
-.btn-refresh { padding: 6px 14px; border: 1px solid var(--primary); border-radius: 6px; background: var(--surface); color: var(--primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.btn-refresh:hover { background: var(--primary); color: #fff; }
+.btn-icon { width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; background: rgba(255,255,255,0.15); color: #f5f5f5; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.btn-icon:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); color: #fff; }
+.btn-refresh { padding: 6px 14px; border: 1px solid rgba(255,255,255,0.4); border-radius: 6px; background: rgba(255,255,255,0.15); color: #f5f5f5; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-refresh:hover { background: rgba(255,255,255,0.25); color: #fff; }
 .btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-refresh.loading { background: var(--primary-bg); color: var(--primary); }
+.btn-refresh.loading { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
 /* Tabs */
-.tabs { display: flex; background: var(--surface2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+.tabs { display: flex; background: var(--surface); border-bottom: 2px solid var(--primary); position: sticky; top: 0; z-index: 10; }
 .tabs button { flex: 1; padding: 10px 8px; border: none; background: none; font-size: 13px; font-weight: 600; color: var(--text3); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.15s; }
-.tabs button.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--surface); }
+.tabs button.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--primary-light); }
 .tabs button:hover { color: var(--primary); }
 /* Summary cards */
 .summary { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: var(--surface); border-bottom: 1px solid var(--border); }
-.summary .card { min-width: 100px; padding: 10px 14px; background: var(--primary-light); border-radius: 6px; text-align: center; }
+.summary .card { min-width: 100px; padding: 10px 14px; background: var(--primary-light); border: 1px solid var(--primary-bg); border-radius: 8px; text-align: center; }
 .summary .card .num { font-size: 22px; font-weight: 700; color: var(--primary); }
 .summary .card .lbl { font-size: 11px; color: var(--text3); margin-top: 2px; }
 /* Tables */
@@ -75,7 +75,7 @@ tr:hover td { background: var(--surface2); }
 .section h2 { font-size: 16px; margin-bottom: 10px; color: var(--primary); }
 /* Modeling cards */
 .model-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
-.model-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.model-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; box-shadow: 0px 3px 7px 0px rgba(0,0,0,0.08); }
 .model-card h3 { font-size: 14px; color: var(--primary); margin-bottom: 8px; border-bottom: 1px solid var(--border2); padding-bottom: 6px; }
 .model-card .detail { font-size: 13px; color: var(--text2); line-height: 1.7; }
 .model-card .detail b { color: var(--text); }
@@ -93,10 +93,10 @@ tr:hover td { background: var(--surface2); }
 .sub-model .sm-name { font-weight: 600; color: var(--text); font-size: 13px; }
 .sub-model .sm-params { font-size: 11px; color: var(--text3); margin-top: 2px; }
 /* Footer */
-footer { text-align: center; padding: 12px; font-size: 11px; color: var(--text4); border-top: 1px solid var(--border); background: var(--surface); margin-top: 16px; }
+footer { text-align: center; padding: 16px; font-size: 11px; color: rgba(255,255,255,0.7); background: #27363b; margin-top: 16px; }
 /* Toast */
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background: #1f2937; color: #fff; border-radius: 8px; font-size: 13px; z-index: 100; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
-[data-theme="dark"] .toast { background: #e5e7eb; color: #111; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background: #27363b; color: #fff; border-radius: 8px; font-size: 13px; z-index: 100; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+[data-theme="dark"] .toast { background: #dde9e7; color: #27363b; }
 .toast.show { opacity: 1; }
 /* Responsive */
 @media (max-width: 600px) {
@@ -114,7 +114,7 @@ th, td { padding: 5px 6px; }
 <body>
 
 <div class="header">
-<h1>SoccerAI - Premier League 2025-26 <span class="badge">ML+ELO</span></h1>
+<h1>PremPredictor <span class="badge">ML+ELO</span></h1>
 <div class="header-actions">
 <button class="btn-icon" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode">&#9790;</button>
 <button class="btn-refresh" id="refresh-btn" onclick="refreshData()">Update Now</button>
@@ -207,7 +207,7 @@ th, td { padding: 5px 6px; }
 
 <div class="toast" id="toast"></div>
 
-<footer>SoccerAI &middot; ML+ELO Ensemble &middot; Data updated <span id="last-updated">-</span></footer>
+<footer>PremPredictor &middot; ML+ELO Ensemble &middot; Data updated <span id="last-updated">-</span></footer>
 
 <script>
 var predictions = [];
@@ -513,9 +513,9 @@ canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
 ctx.scale(dpr, dpr);
 
 var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-var bgColor = isDark ? '#1f2937' : '#fff';
+var bgColor = isDark ? '#27363b' : '#fff';
 var textColor = isDark ? '#9ca3af' : '#6b7280';
-var barFill = isDark ? 'rgba(129,140,248,0.75)' : 'rgba(67,56,202,0.7)';
+var barFill = isDark ? 'rgba(117,178,173,0.75)' : 'rgba(58,102,97,0.7)';
 
 ctx.fillStyle = bgColor; ctx.fillRect(0, 0, w, h);
 
@@ -563,11 +563,11 @@ var pad = { top: 20, right: 20, bottom: 40, left: 40 };
 var cw = w - pad.left - pad.right, ch = h - pad.top - pad.bottom;
 
 var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-var gridColor = isDark ? '#374151' : '#e5e7eb';
+var gridColor = isDark ? '#3d5c5f' : '#c8d8d6';
 var textColor = isDark ? '#9ca3af' : '#6b7280';
-var primaryColor = isDark ? '#818cf8' : '#4338ca';
-var surfaceColor = isDark ? '#1f2937' : '#fff';
-var chartFill = isDark ? 'rgba(129,140,248,0.12)' : 'rgba(67,56,202,0.08)';
+var primaryColor = isDark ? '#75b2ad' : '#4a827e';
+var surfaceColor = isDark ? '#27363b' : '#fff';
+var chartFill = isDark ? 'rgba(117,178,173,0.12)' : 'rgba(58,102,97,0.08)';
 
 ctx.fillStyle = surfaceColor; ctx.fillRect(0, 0, w, h);
 ctx.strokeStyle = gridColor; ctx.lineWidth = 1;
