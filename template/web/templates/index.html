@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Soccer Predictions</title>
+<title>Prediction App</title>
 <style>
 :root {
 --bg: #f5f5f5; --surface: #fff; --surface2: #f9fafb; --border: #e5e7eb; --border2: #f3f4f6;
 --text: #333; --text2: #374151; --text3: #6b7280; --text4: #9ca3af;
 --primary: #4338ca; --primary-light: #f0f0ff; --primary-bg: #e0e7ff;
---tag-home-bg: #d1fae5; --tag-home-fg: #065f46;
+--tag-win-bg: #d1fae5; --tag-win-fg: #065f46;
 --tag-draw-bg: #fef3c7; --tag-draw-fg: #92400e;
---tag-away-bg: #fee2e2; --tag-away-fg: #991b1b;
+--tag-loss-bg: #fee2e2; --tag-loss-fg: #991b1b;
 --chart-fill: rgba(67,56,202,0.08); --avg-line: #f59e0b;
 }
 [data-theme="dark"] {
 --bg: #111827; --surface: #1f2937; --surface2: #374151; --border: #374151; --border2: #4b5563;
 --text: #e5e7eb; --text2: #d1d5db; --text3: #9ca3af; --text4: #6b7280;
 --primary: #818cf8; --primary-light: #1e1b4b; --primary-bg: #312e81;
---tag-home-bg: #064e3b; --tag-home-fg: #6ee7b7;
+--tag-win-bg: #064e3b; --tag-win-fg: #6ee7b7;
 --tag-draw-bg: #78350f; --tag-draw-fg: #fcd34d;
---tag-away-bg: #7f1d1d; --tag-away-fg: #fca5a5;
+--tag-loss-bg: #7f1d1d; --tag-loss-fg: #fca5a5;
 --chart-fill: rgba(129,140,248,0.12); --avg-line: #fbbf24;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -55,16 +55,16 @@ th.sort-asc::after { content: ' \25B2'; font-size: 9px; }
 th.sort-desc::after { content: ' \25BC'; font-size: 9px; }
 td { padding: 6px 10px; border-bottom: 1px solid var(--border2); white-space: nowrap; }
 tr:hover td { background: var(--surface2); }
-/* Badges */
+/* Badges - customize tag classes for your domain */
 .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-.tag-home { background: var(--tag-home-bg); color: var(--tag-home-fg); }
+.tag-win { background: var(--tag-win-bg); color: var(--tag-win-fg); }
 .tag-draw { background: var(--tag-draw-bg); color: var(--tag-draw-fg); }
-.tag-away { background: var(--tag-away-bg); color: var(--tag-away-fg); }
-.tag-correct { background: var(--tag-home-bg); color: var(--tag-home-fg); }
-.tag-wrong { background: var(--tag-away-bg); color: var(--tag-away-fg); }
-.tag-conf-high { background: var(--tag-home-bg); color: var(--tag-home-fg); }
+.tag-loss { background: var(--tag-loss-bg); color: var(--tag-loss-fg); }
+.tag-correct { background: var(--tag-win-bg); color: var(--tag-win-fg); }
+.tag-wrong { background: var(--tag-loss-bg); color: var(--tag-loss-fg); }
+.tag-conf-high { background: var(--tag-win-bg); color: var(--tag-win-fg); }
 .tag-conf-med { background: var(--tag-draw-bg); color: var(--tag-draw-fg); }
-.tag-conf-low { background: var(--tag-away-bg); color: var(--tag-away-fg); }
+.tag-conf-low { background: var(--tag-loss-bg); color: var(--tag-loss-fg); }
 /* Section */
 .section { display: none; }
 .section.active { display: block; }
@@ -76,22 +76,11 @@ tr:hover td { background: var(--surface2); }
 /* Modeling cards */
 .model-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
 .model-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
-.model-card h3 { font-size: 14px; color: var(--primary); margin-bottom: 8px; border-bottom: 1px solid var(--border2); padding-bottom: 6px; }
-.model-card .detail { font-size: 13px; color: var(--text2); line-height: 1.7; }
+.model-card h3 { font-size: 14px; color: var(--primary); margin-bottom: 8px; }
+.model-card .detail { font-size: 13px; color: var(--text2); line-height: 1.6; }
 .model-card .detail b { color: var(--text); }
 .feature-list { max-height: 240px; overflow-y: auto; }
 .feature-list span { display: inline-block; padding: 2px 8px; margin: 2px; border-radius: 4px; font-size: 11px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); }
-/* Confusion matrix */
-.cm-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.cm-table th, .cm-table td { padding: 6px 8px; text-align: center; border: 1px solid var(--border2); }
-.cm-table th { background: var(--surface2); font-size: 11px; position: static; cursor: default; }
-.cm-table th:hover { color: var(--text2); }
-.cm-diag { background: var(--primary-light); font-weight: 700; border-radius: 4px; }
-/* Sub-model list */
-.sub-model { padding: 6px 0; border-bottom: 1px solid var(--border2); }
-.sub-model:last-child { border-bottom: none; }
-.sub-model .sm-name { font-weight: 600; color: var(--text); font-size: 13px; }
-.sub-model .sm-params { font-size: 11px; color: var(--text3); margin-top: 2px; }
 /* Footer */
 footer { text-align: center; padding: 12px; font-size: 11px; color: var(--text4); border-top: 1px solid var(--border); background: var(--surface); margin-top: 16px; }
 /* Toast */
@@ -114,7 +103,7 @@ th, td { padding: 5px 6px; }
 <body>
 
 <div class="header">
-<h1>SoccerAI - Premier League 2025-26 <span class="badge">ML+ELO</span></h1>
+<h1>PredictionApp <span class="badge">MODEL</span></h1>
 <div class="header-actions">
 <button class="btn-icon" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode">&#9790;</button>
 <button class="btn-refresh" id="refresh-btn" onclick="refreshData()">Update Now</button>
@@ -131,36 +120,36 @@ th, td { padding: 5px 6px; }
 <button onclick="showTab('analytics')">Analytics</button>
 </div>
 
+<!-- PREDICTIONS TAB — customize column headers for your domain -->
 <div class="section active" id="predictions">
 <div class="table-wrap"><table id="pred-table"><thead><tr>
-<th data-key="date">Date</th><th data-key="home_team">Home Team</th><th data-key="away_team">Away Team</th><th data-key="prediction">Prediction</th><th data-key="confidence" data-type="num">Confidence</th><th data-key="home_win_prob" data-type="num">Home Win %</th><th data-key="draw_prob" data-type="num">Draw %</th><th data-key="away_win_prob" data-type="num">Away Win %</th><th data-key="elo_diff" data-type="num">ELO Diff</th><th>Result</th><th>Score</th>
+<th data-key="date">Date</th><th data-key="entity_a">Entity A</th><th data-key="entity_b">Entity B</th><th data-key="prediction">Prediction</th><th data-key="confidence" data-type="num">Confidence</th><th data-key="a_win_prob" data-type="num">A Win %</th><th data-key="draw_prob" data-type="num">Draw %</th><th data-key="b_win_prob" data-type="num">B Win %</th><th data-key="rating_diff" data-type="num">Rating Diff</th><th>Result</th><th>Score</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
+<!-- HISTORICAL TAB -->
 <div class="section" id="historical">
 <div class="table-wrap"><table id="hist-table"><thead><tr>
-<th data-key="date">Date</th><th data-key="home_team">Home Team</th><th data-key="away_team">Away Team</th><th data-key="prediction">Predicted</th><th data-key="actual">Actual</th><th>Score</th><th data-key="is_correct" data-type="num">Correct?</th><th data-key="confidence" data-type="num">Confidence</th>
+<th data-key="date">Date</th><th data-key="entity_a">Entity A</th><th data-key="entity_b">Entity B</th><th data-key="prediction">Predicted</th><th data-key="actual">Actual</th><th>Score</th><th data-key="is_correct" data-type="num">Correct?</th><th data-key="confidence" data-type="num">Confidence</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
+<!-- STANDINGS TAB — customize columns for your domain -->
 <div class="section" id="standings">
 <div class="table-wrap"><table id="stand-table"><thead><tr>
-<th data-key="position" data-type="num">Position</th><th data-key="team">Team</th><th data-key="matches" data-type="num">Played</th><th data-key="wins" data-type="num">Wins</th><th data-key="draws" data-type="num">Draws</th><th data-key="losses" data-type="num">Losses</th><th data-key="goals_for" data-type="num">Goals For</th><th data-key="goals_against" data-type="num">Goals Against</th><th data-key="goal_difference" data-type="num">Goal Diff</th><th data-key="points" data-type="num">Points</th><th data-key="elo" data-type="num">ELO</th><th data-key="form">Form</th>
+<th data-key="position" data-type="num">Position</th><th data-key="name">Name</th><th data-key="matches" data-type="num">Played</th><th data-key="wins" data-type="num">Wins</th><th data-key="draws" data-type="num">Draws</th><th data-key="losses" data-type="num">Losses</th><th data-key="score_for" data-type="num">Score For</th><th data-key="score_against" data-type="num">Score Against</th><th data-key="score_diff" data-type="num">Score Diff</th><th data-key="points" data-type="num">Points</th><th data-key="rating" data-type="num">Rating</th><th data-key="form">Form</th>
 </tr></thead><tbody></tbody></table></div>
 </div>
 
+<!-- MODELING TAB -->
 <div class="section" id="modeling">
 <div class="model-grid">
 <div class="model-card">
-<h3>Ensemble Model</h3>
+<h3>Model Architecture</h3>
 <div class="detail" id="model-ensemble">Loading...</div>
 </div>
 <div class="model-card">
-<h3>Sub-Models</h3>
-<div class="detail" id="model-submodels">Loading...</div>
-</div>
-<div class="model-card">
-<h3>ELO Rating System</h3>
+<h3>Rating System</h3>
 <div class="detail" id="model-elo">Loading...</div>
 </div>
 <div class="model-card">
@@ -171,21 +160,14 @@ th, td { padding: 5px 6px; }
 <h3>Model Performance</h3>
 <div class="detail" id="model-performance">Loading...</div>
 </div>
-<div class="model-card">
-<h3>Confusion Matrix</h3>
-<div class="detail" id="model-confusion">Loading...</div>
-</div>
 <div class="model-card" style="grid-column: 1 / -1;">
-<h3>Feature Importance (Top 20)</h3>
-<div class="chart-wrap" style="padding:8px 0"><canvas id="fi-chart"></canvas></div>
-</div>
-<div class="model-card" style="grid-column: 1 / -1;">
-<h3>Feature Set (<span id="feat-count">47</span> Features)</h3>
+<h3>Feature Set</h3>
 <div class="detail feature-list" id="model-features">Loading...</div>
 </div>
 </div>
 </div>
 
+<!-- ANALYTICS TAB -->
 <div class="section" id="analytics">
 <div class="chart-wrap">
 <h2>Accuracy Trend by Month</h2>
@@ -198,21 +180,21 @@ th, td { padding: 5px 6px; }
 </tr></thead><tbody></tbody></table>
 </div>
 <div class="table-wrap" style="padding:0 12px 12px">
-<h2>Accuracy by Team</h2>
+<h2>Accuracy by Entity</h2>
 <table id="team-acc-table"><thead><tr>
-<th data-key="team">Team</th><th data-key="predicted" data-type="num">Predicted</th><th data-key="correct" data-type="num">Correct</th><th data-key="acc" data-type="num">Accuracy</th>
+<th data-key="name">Name</th><th data-key="predicted" data-type="num">Predicted</th><th data-key="correct" data-type="num">Correct</th><th data-key="acc" data-type="num">Accuracy</th>
 </tr></thead><tbody></tbody></table>
 </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<footer>SoccerAI &middot; ML+ELO Ensemble &middot; Data updated <span id="last-updated">-</span></footer>
+<footer>PredictionApp &middot; ML Model &middot; Data updated <span id="last-updated">-</span></footer>
 
 <script>
 var predictions = [];
 var historical = [];
-var teams = [];
+var standings = [];
 var summary = {};
 var modelInfo = {};
 
@@ -223,7 +205,6 @@ var isDark = html.getAttribute('data-theme') === 'dark';
 html.setAttribute('data-theme', isDark ? 'light' : 'dark');
 localStorage.setItem('theme', isDark ? 'light' : 'dark');
 document.getElementById('theme-btn').innerHTML = isDark ? '☾' : '☉';
-if (modelInfo.feature_importances) renderFeatureImportanceChart(modelInfo.feature_importances);
 }
 (function() {
 var saved = localStorage.getItem('theme');
@@ -239,15 +220,14 @@ document.querySelectorAll('.tabs button').forEach(function(b) { b.classList.remo
 document.getElementById(name).classList.add('active');
 event.target.classList.add('active');
 if (name === 'analytics' && historical.length) renderTrendChart();
-if (name === 'modeling' && modelInfo.feature_importances) renderFeatureImportanceChart(modelInfo.feature_importances);
 }
 
-/* Tags */
+/* Tags — customize text/labels for your domain */
 function tag(text, cls) { return '<span class="tag ' + cls + '">' + text + '</span>'; }
 function resultTag(result) {
-if (result === 'Home Win') return tag('Home Win', 'tag-home');
+if (result === 'A Win') return tag('A Win', 'tag-win');
 if (result === 'Draw') return tag('Draw', 'tag-draw');
-if (result === 'Away Win') return tag('Away Win', 'tag-away');
+if (result === 'B Win') return tag('B Win', 'tag-loss');
 return result || '-';
 }
 function confTag(conf) {
@@ -276,10 +256,8 @@ var key = th.getAttribute('data-key');
 var type = th.getAttribute('data-type') || 'str';
 var currentDir = th.classList.contains('sort-asc') ? 'asc' : th.classList.contains('sort-desc') ? 'desc' : '';
 var dir = currentDir === 'asc' ? 'desc' : 'asc';
-
 table.querySelectorAll('th').forEach(function(h) { h.classList.remove('sort-asc', 'sort-desc'); });
 th.classList.add('sort-' + dir);
-
 dataFn(key, dir, type);
 });
 });
@@ -289,80 +267,54 @@ var predSortKey = '', predSortDir = '';
 var histSortKey = 'date', histSortDir = 'desc';
 var standSortKey = 'points', standSortDir = 'desc';
 
-function sortPredictions(key, dir, type) {
-predSortKey = key; predSortDir = dir;
-var sorted = predictions.slice().sort(function(a, b) {
+function makeSortFn(dataSource, renderFn) {
+return function(key, dir, type) {
+var sorted = dataSource.slice().sort(function(a, b) {
 var va = a[key], vb = b[key];
 if (type === 'num') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
 else { va = (va || '').toString().toLowerCase(); vb = (vb || '').toString().toLowerCase(); }
 return dir === 'asc' ? (va > vb ? 1 : va < vb ? -1 : 0) : (va < vb ? 1 : va > vb ? -1 : 0);
 });
-renderPredictionRows(sorted);
+renderFn(sorted);
+};
 }
 
-function sortHistorical(key, dir, type) {
-histSortKey = key; histSortDir = 'desc';
-var sorted = historical.slice().sort(function(a, b) {
-var va = a[key], vb = b[key];
-if (type === 'num') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
-else { va = (va || '').toString().toLowerCase(); vb = (vb || '').toString().toLowerCase(); }
-return dir === 'asc' ? (va > vb ? 1 : va < vb ? -1 : 0) : (va < vb ? 1 : va > vb ? -1 : 0);
-});
-renderHistoricalRows(sorted);
-}
+var sortPredictions = makeSortFn(predictions, function() {});
+var sortHistorical = makeSortFn(historical, function() {});
+var sortStandings = makeSortFn(standings, function() {});
 
-function sortStandings(key, dir, type) {
-standSortKey = key; standSortDir = dir;
-var sorted = teams.slice().sort(function(a, b) {
-var va = a[key], vb = b[key];
-if (type === 'num') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
-else { va = (va || '').toString().toLowerCase(); vb = (vb || '').toString().toLowerCase(); }
-return dir === 'asc' ? (va > vb ? 1 : va < vb ? -1 : 0) : (va < vb ? 1 : va > vb ? -1 : 0);
-});
-renderStandingsRows(sorted);
-}
-
-/* Render functions */
-function renderSummary() {
-var s = summary;
-var html = '';
-html += '<div class="card"><div class="num">' + (s.accuracy || 0) + '%</div><div class="lbl">Accuracy</div></div>';
-html += '<div class="card"><div class="num">' + (s.total_historical || 0) + '</div><div class="lbl">Matches</div></div>';
-html += '<div class="card"><div class="num">' + (s.teams || 0) + '</div><div class="lbl">Teams</div></div>';
-html += '<div class="card"><div class="num">' + (s.weeks_available || 0) + '</div><div class="lbl">Weeks</div></div>';
-document.getElementById('summary').innerHTML = html;
-document.getElementById('last-updated').textContent = s.last_updated || '-';
-}
-
+/* Render functions — customize row rendering for your domain */
 function predictionRow(p) {
 var result = p.actual_result && p.actual_result !== 'Not Played' ? resultTag(p.actual_result) : '-';
-var score = (p.home_goals != null && p.away_goals != null) ? p.home_goals + '-' + p.away_goals : '-';
+var score = (p.score_a != null && p.score_b != null) ? p.score_a + '-' + p.score_b : '-';
 return '<tr>'
 + '<td>' + (p.date || '').split(' ')[0] + '</td>'
-+ '<td>' + p.home_team + '</td>'
-+ '<td>' + p.away_team + '</td>'
++ '<td>' + (p.entity_a || '') + '</td>'
++ '<td>' + (p.entity_b || '') + '</td>'
 + '<td>' + resultTag(p.prediction) + '</td>'
 + '<td>' + confTag(p.confidence) + '</td>'
-+ '<td>' + (p.home_win_prob || p.home_prob || 0) + '</td>'
++ '<td>' + (p.a_win_prob || 0) + '</td>'
 + '<td>' + (p.draw_prob || 0) + '</td>'
-+ '<td>' + (p.away_win_prob || p.away_prob || 0) + '</td>'
-+ '<td style="color:' + ((p.elo_diff||0) > 100 ? 'var(--tag-home-fg)' : (p.elo_diff||0) < -100 ? 'var(--tag-away-fg)' : 'var(--text3)') + '">' + ((p.elo_diff||0) > 0 ? '+' : '') + (p.elo_diff || 0) + '</td>'
++ '<td>' + (p.b_win_prob || 0) + '</td>'
++ '<td>' + ((p.rating_diff || 0) > 0 ? '+' : '') + (p.rating_diff || 0) + '</td>'
 + '<td>' + result + '</td>'
 + '<td>' + score + '</td>'
 + '</tr>';
 }
 
-function renderPredictions() { renderPredictionRows(predictions); }
-function renderPredictionRows(data) {
-document.querySelector('#pred-table tbody').innerHTML = data.map(predictionRow).join('');
+function renderPredictions() {
+document.querySelector('#pred-table tbody').innerHTML = predictions.map(predictionRow).join('');
+sortPredictions = makeSortFn(predictions, function(d) {
+document.querySelector('#pred-table tbody').innerHTML = d.map(predictionRow).join('');
+});
 }
 
 function historicalRow(p) {
-var score = (p.home_goals != null && p.away_goals != null) ? p.home_goals + '-' + p.away_goals : '-';
+var score = (p.score_a != null && p.score_b != null) ? p.score_a + '-' + p.score_b : '-';
 return '<tr>'
 + '<td>' + (p.date || '').split(' ')[0] + '</td>'
-+ '<td>' + p.home_team + '</td>'
-+ '<td>' + p.away_team + '</td>'
++ '<td>' + (p.entity_a || '') + '</td>'
++ '<td>' + (p.entity_b || '') + '</td>'
 + '<td>' + resultTag(p.prediction) + '</td>'
 + '<td>' + resultTag(p.actual) + '</td>'
 + '<td>' + score + '</td>'
@@ -373,166 +325,47 @@ return '<tr>'
 
 function renderHistorical() {
 var sorted = historical.slice().sort(function(a, b) { return (b.date || '').localeCompare(a.date || ''); });
-renderHistoricalRows(sorted);
-}
-function renderHistoricalRows(data) {
-document.querySelector('#hist-table tbody').innerHTML = data.map(historicalRow).join('');
+document.querySelector('#hist-table tbody').innerHTML = sorted.map(historicalRow).join('');
+sortHistorical = makeSortFn(historical, function(d) {
+document.querySelector('#hist-table tbody').innerHTML = d.map(historicalRow).join('');
+});
 }
 
 function standingsRow(t, i) {
 return '<tr>'
 + '<td>' + (t.position || i + 1) + '</td>'
-+ '<td><b>' + t.team + '</b></td>'
++ '<td><b>' + (t.name || '') + '</b></td>'
 + '<td>' + (t.matches || 0) + '</td>'
 + '<td>' + (t.wins || 0) + '</td>'
 + '<td>' + (t.draws || 0) + '</td>'
 + '<td>' + (t.losses || 0) + '</td>'
-+ '<td>' + (t.goals_for || 0) + '</td>'
-+ '<td>' + (t.goals_against || 0) + '</td>'
-+ '<td>' + (t.goal_difference > 0 ? '+' : '') + (t.goal_difference || 0) + '</td>'
++ '<td>' + (t.score_for || 0) + '</td>'
++ '<td>' + (t.score_against || 0) + '</td>'
++ '<td>' + ((t.score_diff || 0) > 0 ? '+' : '') + (t.score_diff || 0) + '</td>'
 + '<td><b>' + (t.points || 0) + '</b></td>'
-+ '<td>' + (t.elo || 0) + '</td>'
++ '<td>' + (t.rating || 0) + '</td>'
 + '<td>' + (t.form || '-') + '</td>'
 + '</tr>';
 }
 
 function renderStandings() {
-var sorted = teams.slice().sort(function(a, b) { return (b.points || 0) - (a.points || 0); });
-renderStandingsRows(sorted);
-}
-function renderStandingsRows(data) {
-document.querySelector('#stand-table tbody').innerHTML = data.map(standingsRow).join('');
+var sorted = standings.slice().sort(function(a, b) { return (b.points || 0) - (a.points || 0); });
+document.querySelector('#stand-table tbody').innerHTML = sorted.map(standingsRow).join('');
+sortStandings = makeSortFn(standings, function(d) {
+document.querySelector('#stand-table tbody').innerHTML = d.map(standingsRow).join('');
+});
 }
 
-/* ===== Modeling tab ===== */
+/* Modeling tab — customize for your model */
 function renderModeling() {
 var m = modelInfo;
 if (!m || !m.ensemble) return;
-
-var ens = m.ensemble || {};
-var w = ens.weights || [1, 1, 1];
-document.getElementById('model-ensemble').innerHTML =
-'<b>Type:</b> VotingClassifier (' + (ens.voting || 'soft').charAt(0).toUpperCase() + (ens.voting || 'soft').slice(1) + ' Voting)<br>' +
-'<b>Estimators:</b> ' + (ens.estimators || 3) + '<br>' +
-'<b>Weights:</b> [' + w.join(', ') + ']<br>' +
-'<b>Features:</b> ' + (m.feature_count || 47) + '<br>' +
-'<b>Scaling:</b> StandardScaler<br>' +
-'<b>Validation:</b> TimeSeriesSplit (5 folds)';
-
-/* Sub-models card */
-var models = m.models || [];
-if (models.length > 0) {
-var smHtml = models.map(function(mod, i) {
-var p = mod.params || {};
-var keys = Object.keys(p).filter(function(k) { return k !== 'random_state'; });
-return '<div class="sub-model">' +
-'<div class="sm-name">' + (i + 1) + '. ' + mod.name + '</div>' +
-'<div class="sm-params">' + keys.map(function(k) { return k + '=' + p[k]; }).join(', ') + '</div>' +
-'</div>';
-}).join('');
-document.getElementById('model-submodels').innerHTML = smHtml;
-} else {
-document.getElementById('model-submodels').innerHTML =
-'<div class="sub-model"><div class="sm-name">1. Logistic Regression</div><div class="sm-params">C=0.5, max_iter=1000</div></div>' +
-'<div class="sub-model"><div class="sm-name">2. Random Forest</div><div class="sm-params">n_estimators=200, max_depth=8</div></div>' +
-'<div class="sub-model"><div class="sm-name">3. Gradient Boosting</div><div class="sm-params">n_estimators=150, learning_rate=0.08</div></div>';
-}
-
-var elo = m.elo || {};
-document.getElementById('model-elo').innerHTML =
-'<b>K-Factor:</b> ' + (elo.k_factor || 32) + '<br>' +
-'<b>Home Advantage:</b> ' + (elo.home_advantage || 65) + ' ELO points<br>' +
-'<b>Initial Rating:</b> ' + (elo.initial_rating || 1500) + '<br>' +
-'<b>Draw Margin:</b> ' + (elo.draw_margin || 8) + ' ELO points<br>' +
-'<b>Update Formula:</b> R\' = R + K &middot; M &middot; (S - E)<br>' +
-'<b>Margin Mult:</b> ln(|GD|+1)';
-
-var blend = m.blend || {};
-document.getElementById('model-blend').innerHTML =
-'<b>ML Weight:</b> ' + ((blend.ml_weight || 0.5) * 100).toFixed(0) + '%<br>' +
-'<b>ELO Weight:</b> ' + ((blend.elo_weight || 0.5) * 100).toFixed(0) + '%<br>' +
-'<b>Draw Decision:</b> Margin threshold of ' + (elo.draw_margin || 8) + '<br>' +
-'<b>Method:</b> Weighted probability average<br>' +
-'<b>Draw Rule:</b> If |ELO diff| &lt; margin and ML prob(draw) is highest, predict Draw';
-
-var perf = m.performance || {};
-document.getElementById('model-performance').innerHTML =
-'<b>Overall Accuracy:</b> ' + (perf.accuracy || summary.accuracy || 0) + '%<br>' +
-'<b>Historical Matches:</b> ' + (perf.total_matches || summary.total_historical || 0) + '<br>' +
-'<b>Correct Predictions:</b> ' + (perf.correct_predictions || '-') + '<br>' +
-'<b>High Confidence Accuracy:</b> ' + (perf.high_conf_accuracy || '-') + '%<br>' +
-'<b>Average Confidence:</b> ' + (perf.avg_confidence || '-') + '%';
-
-/* Confusion matrix — computed from historical data */
-var cm = { hh: 0, hd: 0, ha: 0, dh: 0, dd: 0, da: 0, ah: 0, ad: 0, aa: 0 };
-historical.forEach(function(p) {
-var pred = p.prediction, actual = p.actual;
-if (pred === 'Home Win' && actual === 'Home Win') cm.hh++;
-else if (pred === 'Home Win' && actual === 'Draw') cm.hd++;
-else if (pred === 'Home Win' && actual === 'Away Win') cm.ha++;
-else if (pred === 'Draw' && actual === 'Home Win') cm.dh++;
-else if (pred === 'Draw' && actual === 'Draw') cm.dd++;
-else if (pred === 'Draw' && actual === 'Away Win') cm.da++;
-else if (pred === 'Away Win' && actual === 'Home Win') cm.ah++;
-else if (pred === 'Away Win' && actual === 'Draw') cm.ad++;
-else if (pred === 'Away Win' && actual === 'Away Win') cm.aa++;
-});
-document.getElementById('model-confusion').innerHTML =
-'<table class="cm-table">' +
-'<tr><th></th><th style="color:var(--tag-home-fg)">Actual H</th><th style="color:var(--tag-draw-fg)">Actual D</th><th style="color:var(--tag-away-fg)">Actual A</th></tr>' +
-'<tr><th style="color:var(--tag-home-fg)">Pred H</th><td class="cm-diag">' + cm.hh + '</td><td>' + cm.hd + '</td><td>' + cm.ha + '</td></tr>' +
-'<tr><th style="color:var(--tag-draw-fg)">Pred D</th><td>' + cm.dh + '</td><td class="cm-diag">' + cm.dd + '</td><td>' + cm.da + '</td></tr>' +
-'<tr><th style="color:var(--tag-away-fg)">Pred A</th><td>' + cm.ah + '</td><td>' + cm.ad + '</td><td class="cm-diag">' + cm.aa + '</td></tr>' +
-'</table>';
-
-/* Feature importance chart */
-if (m.feature_importances && m.feature_importances.length) {
-renderFeatureImportanceChart(m.feature_importances);
-}
-
-/* Feature list */
-document.getElementById('feat-count').textContent = m.feature_count || 47;
+document.getElementById('model-ensemble').innerHTML = '<b>Type:</b> ' + (m.ensemble.type || 'TBD');
+document.getElementById('model-elo').innerHTML = '<b>Rating params:</b> Customize for your domain';
+document.getElementById('model-blend').innerHTML = '<b>Blend:</b> Customize for your domain';
+document.getElementById('model-performance').innerHTML = '<b>Accuracy:</b> ' + (m.performance && m.performance.accuracy || '-') + '%';
 if (m.features && m.features.length) {
-document.getElementById('model-features').innerHTML =
-'<p style="margin-bottom:6px">Rolling average stats (5-match window) for home/away teams plus ELO, xG proxy, fatigue, and H2H features:</p>' +
-m.features.map(function(f) { return '<span>' + f + '</span>'; }).join('');
-}
-}
-
-/* ===== Feature Importance horizontal bar chart ===== */
-function renderFeatureImportanceChart(fi) {
-var top = fi.slice(0, 20);
-var canvas = document.getElementById('fi-chart');
-if (!canvas) return;
-var ctx = canvas.getContext('2d');
-var dpr = window.devicePixelRatio || 1;
-var w = canvas.parentElement.clientWidth - 16;
-var h = Math.max(300, top.length * 22 + 40);
-canvas.width = w * dpr; canvas.height = h * dpr;
-canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
-ctx.scale(dpr, dpr);
-
-var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-var bgColor = isDark ? '#1f2937' : '#fff';
-var textColor = isDark ? '#9ca3af' : '#6b7280';
-var barFill = isDark ? 'rgba(129,140,248,0.75)' : 'rgba(67,56,202,0.7)';
-
-ctx.fillStyle = bgColor; ctx.fillRect(0, 0, w, h);
-
-var maxVal = top[0].importance || 1;
-var pad = { top: 15, right: 60, bottom: 10, left: 150 };
-var cw = w - pad.left - pad.right;
-var barH = 16, gap = 4;
-
-for (var i = 0; i < top.length; i++) {
-var y = pad.top + i * (barH + gap);
-var barW = (top[i].importance / maxVal) * cw;
-ctx.fillStyle = barFill;
-ctx.fillRect(pad.left, y, barW, barH);
-ctx.fillStyle = textColor; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
-ctx.fillText(top[i].feature, pad.left - 8, y + 12);
-ctx.textAlign = 'left';
-ctx.fillText((top[i].importance * 100).toFixed(1) + '%', pad.left + barW + 6, y + 12);
+document.getElementById('model-features').innerHTML = m.features.map(function(f) { return '<span>' + f + '</span>'; }).join('');
 }
 }
 
@@ -618,53 +451,14 @@ var total = historical.length;
 var correct = historical.filter(function(p) { return p.is_correct; }).length;
 var acc = total > 0 ? (correct / total * 100).toFixed(1) : 0;
 
-var homeWins = historical.filter(function(p) { return p.actual === 'Home Win'; }).length;
-var draws = historical.filter(function(p) { return p.actual === 'Draw'; }).length;
-var awayWins = historical.filter(function(p) { return p.actual === 'Away Win'; }).length;
-
-var highConf = historical.filter(function(p) { return p.confidence >= 70; });
-var highAcc = highConf.length > 0 ? (highConf.filter(function(p) { return p.is_correct; }).length / highConf.length * 100).toFixed(1) : 0;
-var medConf = historical.filter(function(p) { return p.confidence >= 50 && p.confidence < 70; });
-var medAcc = medConf.length > 0 ? (medConf.filter(function(p) { return p.is_correct; }).length / medConf.length * 100).toFixed(1) : 0;
-
-var predHome = historical.filter(function(p) { return p.prediction === 'Home Win'; }).length;
-var predDraw = historical.filter(function(p) { return p.prediction === 'Draw'; }).length;
-var predAway = historical.filter(function(p) { return p.prediction === 'Away Win'; }).length;
-
 var rows = [
 ['Overall Accuracy', acc + '% (' + correct + '/' + total + ')'],
-['High Confidence (70%+)', highAcc + '% (' + highConf.filter(function(p){return p.is_correct}).length + '/' + highConf.length + ')'],
-['Medium Confidence (50-69%)', medAcc + '% (' + medConf.filter(function(p){return p.is_correct}).length + '/' + medConf.length + ')'],
 ['', ''],
-['Actual Result Distribution', ''],
-[' Home Wins', homeWins + ' (' + (total > 0 ? (homeWins/total*100).toFixed(1) : 0) + '%)'],
-[' Draws', draws + ' (' + (total > 0 ? (draws/total*100).toFixed(1) : 0) + '%)'],
-[' Away Wins', awayWins + ' (' + (total > 0 ? (awayWins/total*100).toFixed(1) : 0) + '%)'],
-['', ''],
-['Predictions Made', ''],
-[' Home Win', predHome],
-[' Draw', predDraw],
-[' Away Win', predAway],
+['Predictions Made', historical.length],
 ];
 
 var tb = document.querySelector('#analytics-table tbody');
 tb.innerHTML = rows.map(function(r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('');
-
-var teamMap = {};
-historical.forEach(function(p) {
-[p.home_team, p.away_team].forEach(function(t) { if (!teamMap[t]) teamMap[t] = { predicted: 0, correct: 0 }; });
-if (p.prediction === 'Home Win' && p.home_team) { teamMap[p.home_team].predicted++; if (p.is_correct) teamMap[p.home_team].correct++; }
-if (p.prediction === 'Away Win' && p.away_team) { teamMap[p.away_team].predicted++; if (p.is_correct) teamMap[p.away_team].correct++; }
-});
-var teamArr = Object.keys(teamMap).map(function(t) {
-var d = teamMap[t];
-return { team: t, predicted: d.predicted, correct: d.correct, acc: d.predicted > 0 ? (d.correct / d.predicted * 100).toFixed(1) : '-' };
-}).filter(function(t) { return t.predicted >= 5; }).sort(function(a, b) { return parseFloat(b.acc || 0) - parseFloat(a.acc || 0); });
-
-var tb2 = document.querySelector('#team-acc-table tbody');
-tb2.innerHTML = teamArr.map(function(t) {
-return '<tr><td>' + t.team + '</td><td>' + t.predicted + '</td><td>' + t.correct + '</td><td>' + t.acc + '%</td></tr>';
-}).join('');
 
 renderTrendChart();
 }
@@ -675,14 +469,12 @@ Promise.all([
 fetch('/api/summary').then(function(r) { return r.json(); }),
 fetch('/api/predictions').then(function(r) { return r.json(); }),
 fetch('/api/historical').then(function(r) { return r.json(); }),
-fetch('/api/teams').then(function(r) { return r.json(); }),
 fetch('/api/model-info').then(function(r) { return r.json(); }).catch(function() { return { data: {} }; })
 ]).then(function(results) {
 summary = results[0].data || {};
 predictions = results[1].data || [];
 historical = results[2].data || [];
-teams = results[3].data || {};
-modelInfo = results[4].data || {};
+modelInfo = results[3].data || {};
 
 renderSummary();
 renderPredictions();
@@ -711,15 +503,19 @@ showToast('Refresh failed: network error');
 });
 }
 
-/* Init sortable tables and load data */
+function renderSummary() {
+var s = summary;
+var html = '';
+html += '<div class="card"><div class="num">' + (s.accuracy || 0) + '%</div><div class="lbl">Accuracy</div></div>';
+html += '<div class="card"><div class="num">' + (s.total_historical || 0) + '</div><div class="lbl">Matches</div></div>';
+document.getElementById('summary').innerHTML = html;
+document.getElementById('last-updated').textContent = s.last_updated || '-';
+}
+
+/* Init */
 makeSortable('pred-table', sortPredictions);
 makeSortable('hist-table', sortHistorical);
 makeSortable('stand-table', sortStandings);
-
-var standPtsTh = document.querySelector('#stand-table th[data-key="points"]');
-if (standPtsTh) standPtsTh.classList.add('sort-desc');
-var histDateTh = document.querySelector('#hist-table th[data-key="date"]');
-if (histDateTh) histDateTh.classList.add('sort-desc');
 
 if (document.documentElement.getAttribute('data-theme') === 'dark') {
 document.getElementById('theme-btn').innerHTML = '☉';

@@ -573,16 +573,47 @@ def blend_predictions(elo_pred, ml_pred, ml_weight=0.50):
     }
 
 
+LOCKED_FILE = DATA_DIR / "locked_predictions.json"
+
+
+def _load_locked():
+    """Load locked predictions (made before match results were known)."""
+    if LOCKED_FILE.exists():
+        with open(LOCKED_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def _save_locked(locked):
+    """Save locked predictions."""
+    with open(LOCKED_FILE, "w", encoding="utf-8") as f:
+        json.dump(locked, f, indent=2, ensure_ascii=False)
+
+
 def update_historical(csv_matches, existing_historical):
-    """Build full historical data from CSV, merging with existing predictions."""
+    """Build full historical data from CSV, merging with existing predictions.
+
+    Predictions are 'locked' once a match has a result — the original
+    prediction made before the result was known is preserved forever.
+    This prevents retrodiction bias where changing ELO ratings would
+    silently alter historical predictions and accuracy.
+    """
     existing_map = {}
     for m in existing_historical:
         key = f"{m.get('date','')[:10]}|{m.get('home_team','')}|{m.get('away_team','')}"
         existing_map[key] = m
 
+    locked = _load_locked()
     team_elos = {t["team"]: t["elo"] for t in load_json("team_stats")}
     new_historical = []
+    new_locked = {}
     match_id = 1
+
+    # Load current predictions to lock in pre-result predictions
+    predictions_map = {}
+    for p in load_json("predictions"):
+        key = f"{p.get('date','')[:10]}|{p.get('home_team','')}|{p.get('away_team','')}"
+        predictions_map[key] = p
 
     for cm in csv_matches:
         if cm["home_goals"] is None:
@@ -594,10 +625,55 @@ def update_historical(csv_matches, existing_historical):
         dt = datetime.strptime(cm["date"], "%Y-%m-%d")
         home_elo = team_elos.get(cm["home_team"], 1500)
         away_elo = team_elos.get(cm["away_team"], 1500)
-        pred = elo_predict(home_elo, away_elo)
 
         actual = cm.get("result", "Unknown")
-        is_correct = pred["prediction"] == actual if actual != "Unknown" else False
+
+        # Priority: locked prediction > existing historical > current predictions > ELO fallback
+        lock = locked.get(key)
+        if lock:
+            prediction = lock["prediction"]
+            is_correct = lock.get("is_correct", prediction == actual) if actual != "Unknown" else None
+            confidence = lock["confidence"]
+            home_prob = lock["home_prob"]
+            draw_prob = lock["draw_prob"]
+            away_prob = lock["away_prob"]
+        elif existing.get("prediction"):
+            # Use existing historical entry (from previous refresh)
+            prediction = existing["prediction"]
+            is_correct = existing.get("is_correct", prediction == actual) if actual != "Unknown" else None
+            confidence = existing.get("confidence", 0)
+            home_prob = existing.get("home_prob", 0)
+            draw_prob = existing.get("draw_prob", 0)
+            away_prob = existing.get("away_prob", 0)
+        elif key in predictions_map:
+            # Lock in the current prediction for this newly-resulted match
+            cp = predictions_map[key]
+            prediction = cp["prediction"]
+            is_correct = prediction == actual if actual != "Unknown" else None
+            confidence = cp.get("confidence", 0)
+            home_prob = cp.get("home_win_prob", cp.get("home_prob", 0))
+            draw_prob = cp.get("draw_prob", 0)
+            away_prob = cp.get("away_win_prob", cp.get("away_prob", 0))
+        else:
+            # Fallback: ELO prediction (only for matches with no prior prediction)
+            pred = elo_predict(home_elo, away_elo)
+            prediction = pred["prediction"]
+            is_correct = prediction == actual if actual != "Unknown" else None
+            confidence = pred["confidence"]
+            home_prob = pred["home_win_prob"]
+            draw_prob = pred["draw_prob"]
+            away_prob = pred["away_win_prob"]
+
+        # Lock this prediction so it's never recalculated
+        if actual not in ("Unknown", None, ""):
+            new_locked[key] = {
+                "prediction": prediction,
+                "confidence": confidence,
+                "home_prob": home_prob,
+                "draw_prob": draw_prob,
+                "away_prob": away_prob,
+                "is_correct": is_correct,
+            }
 
         entry = {
             "id": match_id,
@@ -605,13 +681,13 @@ def update_historical(csv_matches, existing_historical):
             "home_team": cm["home_team"],
             "away_team": cm["away_team"],
             "league": "Premier League",
-            "prediction": existing.get("prediction", pred["prediction"]),
+            "prediction": prediction,
             "actual": actual,
-            "is_correct": existing.get("is_correct", is_correct),
-            "confidence": existing.get("confidence", pred["confidence"]),
-            "home_prob": round(existing.get("home_prob", pred["home_win_prob"]), 1),
-            "draw_prob": round(existing.get("draw_prob", pred["draw_prob"]), 1),
-            "away_prob": round(existing.get("away_prob", pred["away_win_prob"]), 1),
+            "is_correct": is_correct,
+            "confidence": confidence,
+            "home_prob": round(home_prob, 1),
+            "draw_prob": round(draw_prob, 1),
+            "away_prob": round(away_prob, 1),
             "home_elo": home_elo,
             "away_elo": away_elo,
             "elo_diff": home_elo - away_elo,
@@ -625,18 +701,31 @@ def update_historical(csv_matches, existing_historical):
         new_historical.append(entry)
         match_id += 1
 
+    # Save locked predictions for future refreshes
+    _save_locked(new_locked)
+    print(f" Locked {len(new_locked)} historical predictions")
+
     return new_historical
 
 
 def update_predictions(upcoming_fixtures):
-    """Build predictions.json from upcoming fixtures using ML+ELO blend."""
+    """Build predictions.json from upcoming fixtures using ML+ELO blend.
+
+    Filters out fixtures whose date has already passed (to avoid showing
+    stale predictions for matches that may have already been played).
+    """
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    future_fixtures = [fx for fx in upcoming_fixtures if fx.get("date", "") >= today]
+    if len(future_fixtures) < len(upcoming_fixtures):
+        print(f" Filtered out {len(upcoming_fixtures) - len(future_fixtures)} past fixtures")
+
     team_elos = {t["team"]: t["elo"] for t in load_json("team_stats")}
 
-    ml_preds = ml_predict_upcoming(upcoming_fixtures) if upcoming_fixtures else {}
+    ml_preds = ml_predict_upcoming(future_fixtures) if future_fixtures else {}
 
     predictions = []
 
-    for i, fx in enumerate(upcoming_fixtures, 1):
+    for i, fx in enumerate(future_fixtures, 1):
         home_elo = team_elos.get(fx["home_team"], 1500)
         away_elo = team_elos.get(fx["away_team"], 1500)
         elo_pred = elo_predict(home_elo, away_elo)
