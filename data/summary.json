@@ -1,15 +1,15 @@
 {
-  "current_week_matches": 20,
-  "total_historical": 360,
+  "current_week_matches": 19,
+  "total_historical": 361,
   "weeks_available": 35,
   "teams": 20,
-  "accuracy": 50.0,
-  "last_updated": "2026-05-15 10:25:23",
+  "accuracy": 50.1,
+  "last_updated": "2026-05-16 18:59:21",
   "current_week": 20,
   "high_confidence": 2,
-  "medium_confidence": 5,
+  "medium_confidence": 4,
   "low_confidence": 13,
-  "home_wins_predicted": 12,
-  "draws_predicted": 1,
-  "away_wins_predicted": 7
+  "home_wins_predicted": 11,
+  "draws_predicted": 3,
+  "away_wins_predicted": 5
 }
