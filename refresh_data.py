@@ -1,8 +1,9 @@
 """Refresh soccer prediction data from free sources.
 
-Fetches latest PL results from football-data.co.uk CSVs,
-upcoming fixtures from football-data.org/TheSportsDB, generates ML+ELO
-blended predictions, and updates all JSON data files.
+Fetches latest PL results from football-data.co.uk CSVs + ESPN API
+(for real-time scores before CSV updates), upcoming fixtures from
+football-data.org / ESPN / TheSportsDB, generates ML+ELO blended
+predictions, and updates all JSON data files.
 """
 
 import json
