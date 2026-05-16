@@ -1,7 +1,7 @@
 """Auto-refresh scheduler for soccer prediction data.
 
-Runs refresh_data.py at a regular interval (default: every 8 hours).
-3x/day to stay within football-data.org 10 req/day free tier.
+Runs refresh_data.py at a regular interval (default: every 4 hours).
+6x/day for timely ESPN result pickup.
 """
 
 import time
@@ -11,7 +11,7 @@ from pathlib import Path
 from datetime import datetime
 
 REFRESH_SCRIPT = Path(__file__).parent / "refresh_data.py"
-DEFAULT_INTERVAL = 8 * 60 * 60  # 8 hours (3x/day to stay within 10 req/day free tier)
+DEFAULT_INTERVAL = 4 * 60 * 60  # 4 hours (6x/day)
 
 
 def run_refresh():
@@ -51,6 +51,6 @@ if __name__ == "__main__":
             interval = int(sys.argv[1]) * 60  # argument in minutes
         except ValueError:
             print("Usage: python auto_refresh.py [interval_minutes]")
-            print("  Default: 480 minutes (8 hours)")
+            print("  Default: 240 minutes (4 hours)")
             sys.exit(1)
     main(interval)

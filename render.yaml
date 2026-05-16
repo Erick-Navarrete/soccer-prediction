@@ -13,8 +13,8 @@ services:
   - key: FOOTBALL_DATA_API_KEY
     sync: false
   healthCheckPath: /
-  # Cron job for scheduled data refresh (3x/day to stay within 10 req/day free tier)
+  # Cron job for scheduled data refresh (6x/day with ESPN real-time results)
   crons:
   - name: update-predictions
-    schedule: "0 6,14,22 * * *"
+    schedule: "0 0,4,8,12,16,20 * * *"
     command: python refresh_data.py
