@@ -19,7 +19,8 @@ from pathlib import Path
 DATA_DIR = Path(__file__).parent / "data"
 HOME_ADVANTAGE = 65
 
-# Team name mapping: TheSportsDB name -> our internal name
+# Team name mapping: external name -> our internal name
+# Covers TheSportsDB, football-data.org, and ESPN shortDisplayName variants
 TEAM_NAME_MAP = {
     "Arsenal": "Arsenal",
     "Aston Villa": "Aston Villa",
@@ -28,9 +29,11 @@ TEAM_NAME_MAP = {
     "Brentford": "Brentford",
     "Brighton and Hove Albion": "Brighton",
     "Brighton & Hove Albion": "Brighton",
+    "Brighton": "Brighton",
     "Burnley": "Burnley",
     "Chelsea": "Chelsea",
     "Crystal Palace": "Crystal Palace",
+    "C Palace": "Crystal Palace",
     "Everton": "Everton",
     "Fulham": "Fulham",
     "Leeds United": "Leeds",
@@ -44,18 +47,24 @@ TEAM_NAME_MAP = {
     "Newcastle": "Newcastle",
     "Nottingham Forest": "Nott'm Forest",
     "Nott'm Forest": "Nott'm Forest",
+    "Nottm Forest": "Nott'm Forest",
     "Tottenham Hotspur": "Tottenham",
     "Tottenham": "Tottenham",
+    "Spurs": "Tottenham",
     "West Ham United": "West Ham",
     "West Ham": "West Ham",
     "Wolverhampton Wanderers": "Wolves",
     "Wolves": "Wolves",
+    "Wolv": "Wolves",
     "Sunderland": "Sunderland",
     "Ipswich Town": "Ipswich",
     "Ipswich": "Ipswich",
     "Leicester City": "Leicester",
     "Leicester": "Leicester",
     "Southampton": "Southampton",
+    "Brighton Hove": "Brighton",
+    "Nottingham": "Nott'm Forest",
+    "Wolverhampton": "Wolves",
 }
 
 # Reverse map: our name -> football-data.co.uk CSV name
@@ -287,7 +296,152 @@ def fetch_upcoming_fixtures():
     return all_fixtures
 
 
-DRAW_MARGIN = 8 # predict Draw when gap between top and draw_prob < this
+def fetch_espn_results(days_back=5):
+    """Fetch recently completed PL matches from ESPN scoreboard.
+
+    ESPN provides real-time final scores (STATUS_FULL_TIME/STATUS_END_TIME)
+    with no auth needed. This catches completed matches hours/days before
+    the football-data.co.uk CSV updates.
+
+    Returns list of match dicts: date, home_team, away_team, home_goals,
+    away_goals, result, source="espn".
+    """
+    results = []
+    today = datetime.now(timezone.utc).date()
+
+    for i in range(days_back):
+        d = today - timedelta(days=i)
+        date_str = d.strftime("%Y%m%d")
+        try:
+            url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates={date_str}"
+            r = requests.get(url, timeout=10)
+            if r.status_code != 200:
+                continue
+            data = r.json()
+            for ev in data.get("events", []):
+                status = ev.get("status", {}).get("type", {})
+                state = status.get("state", "")
+                # Only pick completed matches
+                if state != "post":
+                    continue
+                comp = ev.get("competitions", [{}])[0]
+                competitors = comp.get("competitors", [])
+                if len(competitors) != 2:
+                    continue
+
+                home = away = None
+                home_goals = away_goals = 0
+                for c in competitors:
+                    name = normalize_team(c["team"].get("shortDisplayName", ""))
+                    score = int(c.get("score", 0))
+                    if c.get("homeAway") == "home":
+                        home = name
+                        home_goals = score
+                    else:
+                        away = name
+                        away_goals = score
+
+                if not home or not away:
+                    continue
+
+                # Determine result
+                if home_goals > away_goals:
+                    result = "Home Win"
+                elif away_goals > home_goals:
+                    result = "Away Win"
+                else:
+                    result = "Draw"
+
+                # Parse ESPN ISO date
+                event_date = (ev.get("date", "")[:10])
+                if not event_date:
+                    event_date = d.strftime("%Y-%m-%d")
+
+                results.append({
+                    "date": event_date,
+                    "home_team": home,
+                    "away_team": away,
+                    "home_goals": home_goals,
+                    "away_goals": away_goals,
+                    "ftr": {"Home Win": "H", "Draw": "D", "Away Win": "A"}.get(result, ""),
+                    "result": result,
+                    "source": "espn",
+                })
+        except Exception as e:
+            print(f"  Warning: ESPN fetch for {d} failed: {e}")
+
+    print(f" Found {len(results)} completed matches from ESPN (last {days_back} days)")
+    return results
+
+
+def fetch_espn_upcoming(days_ahead=10):
+    """Fetch upcoming PL fixtures from ESPN scoreboard.
+
+    ESPN provides scheduled matches with venue, no auth needed.
+    Returns list of fixture dicts compatible with fetch_upcoming_fixtures().
+    """
+    fixtures = []
+    seen = set()
+    today = datetime.now(timezone.utc).date()
+
+    for i in range(days_ahead):
+        d = today + timedelta(days=i)
+        date_str = d.strftime("%Y%m%d")
+        try:
+            url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates={date_str}"
+            r = requests.get(url, timeout=10)
+            if r.status_code != 200:
+                continue
+            data = r.json()
+            for ev in data.get("events", []):
+                status = ev.get("status", {}).get("type", {})
+                state = status.get("state", "")
+                # Only pick scheduled matches
+                if state != "pre":
+                    continue
+
+                comp = ev.get("competitions", [{}])[0]
+                competitors = comp.get("competitors", [])
+                if len(competitors) != 2:
+                    continue
+
+                home = away = None
+                venue = "Unknown Stadium"
+                for c in competitors:
+                    name = normalize_team(c["team"].get("shortDisplayName", ""))
+                    if c.get("homeAway") == "home":
+                        home = name
+                        venue = comp.get("venue", {}).get("fullName", "Unknown Stadium")
+                    else:
+                        away = name
+
+                if not home or not away:
+                    continue
+
+                event_date = (ev.get("date", "")[:10]) or d.strftime("%Y-%m-%d")
+                time_str = (ev.get("date", "")[11:16]) or "15:00"
+
+                key = f"{event_date}|{home}|{away}"
+                if key in seen:
+                    continue
+                seen.add(key)
+
+                fixtures.append({
+                    "date": event_date,
+                    "time": time_str,
+                    "home_team": home,
+                    "away_team": away,
+                    "venue": venue,
+                    "round": 0,
+                })
+        except Exception as e:
+            print(f"  Warning: ESPN fetch for {d} failed: {e}")
+
+    print(f" Found {len(fixtures)} upcoming fixtures from ESPN (next {days_ahead} days)")
+    return fixtures
+
+
+DRAW_MARGIN = 8  # predict Draw when gap between top and draw_prob < this
 
 
 def elo_predict(home_elo, away_elo, home_advantage=HOME_ADVANTAGE):
@@ -590,9 +744,46 @@ def _save_locked(locked):
         json.dump(locked, f, indent=2, ensure_ascii=False)
 
 
-def update_historical(csv_matches, existing_historical):
-    """Build full historical data from CSV, merging with existing predictions.
+def merge_completed_matches(csv_matches, espn_results):
+    """Merge ESPN completed matches into CSV match list.
 
+    ESPN provides real-time scores that can arrive hours/days before
+    the football-data.co.uk CSV updates. For each ESPN result, if the
+    match is not already in the CSV results (keyed by date|home|away),
+    add it. If it is already in CSV but without goals, fill in the result.
+    """
+    csv_keys = {}
+    for m in csv_matches:
+        key = f"{m['date']}|{m['home_team']}|{m['away_team']}"
+        csv_keys[key] = m
+
+    added = 0
+    for em in espn_results:
+        key = f"{em['date']}|{em['home_team']}|{em['away_team']}"
+        if key in csv_keys:
+            # CSV already has this match — if it has goals, CSV wins (more reliable)
+            # If CSV row has no goals yet, fill from ESPN
+            if csv_keys[key]["home_goals"] is None:
+                csv_keys[key]["home_goals"] = em["home_goals"]
+                csv_keys[key]["away_goals"] = em["away_goals"]
+                csv_keys[key]["ftr"] = em["ftr"]
+                csv_keys[key]["result"] = em["result"]
+                added += 1
+        else:
+            # ESPN has a completed match not in CSV yet — add it
+            csv_matches.append(em)
+            csv_keys[key] = em
+            added += 1
+
+    if added:
+        print(f" ESPN added/filled {added} results not yet in CSV")
+    return csv_matches
+
+
+def update_historical(all_matches, existing_historical):
+    """Build full historical data from matches, merging with existing predictions.
+
+    all_matches combines CSV results + ESPN completed matches.
     Predictions are 'locked' once a match has a result — the original
     prediction made before the result was known is preserved forever.
     This prevents retrodiction bias where changing ELO ratings would
@@ -615,7 +806,7 @@ def update_historical(csv_matches, existing_historical):
         key = f"{p.get('date','')[:10]}|{p.get('home_team','')}|{p.get('away_team','')}"
         predictions_map[key] = p
 
-    for cm in csv_matches:
+    for cm in all_matches:
         if cm["home_goals"] is None:
             continue
 
@@ -774,14 +965,14 @@ def update_predictions(upcoming_fixtures):
     return predictions
 
 
-def update_team_stats(csv_matches, existing_teams):
-    """Update team standings from CSV results."""
+def update_team_stats(completed_matches, existing_teams):
+    """Update team standings from completed match results."""
     teams_map = {}
     for t in existing_teams:
         teams_map[t["team"]] = t.copy()
 
     stats = {}
-    for cm in csv_matches:
+    for cm in completed_matches:
         if cm["home_goals"] is None:
             continue
         home = cm["home_team"]
@@ -898,12 +1089,12 @@ def update_summary(predictions, historical, team_stats):
     }
 
 
-def update_elo_ratings(csv_matches, team_stats):
-    """Recalculate ELO ratings from all historical matches."""
+def update_elo_ratings(completed_matches, team_stats):
+    """Recalculate ELO ratings from all completed matches."""
     from src.feature_engineering import FootballELO
 
     elo = FootballELO(k=32, home_advantage=65)
-    for cm in csv_matches:
+    for cm in completed_matches:
         if cm["home_goals"] is None:
             continue
         home = CSV_NAME_MAP.get(cm["home_team"], cm["home_team"])
@@ -921,40 +1112,58 @@ def update_elo_ratings(csv_matches, team_stats):
 def main():
     print("=== Soccer Prediction Data Refresh ===\n")
 
-    # 1. Fetch data
+    # 1. Fetch data from all sources
     csv_matches = fetch_csv_results()
+    espn_results = fetch_espn_results(days_back=5)
+
+    # 2. Merge ESPN completed matches into CSV results
+    #    ESPN catches results before CSV updates, moving games to history faster
+    all_matches = merge_completed_matches(csv_matches, espn_results)
+
+    # 3. Fetch upcoming fixtures (football-data.org + ESPN + TheSportsDB fallback)
     upcoming = fetch_upcoming_fixtures()
 
-    if not csv_matches and not upcoming:
+    # Add ESPN upcoming fixtures (deduped by date|home|away key)
+    espn_upcoming = fetch_espn_upcoming(days_ahead=10)
+    seen_keys = {f"{fx['date']}|{fx['home_team']}|{fx['away_team']}" for fx in upcoming}
+    for fx in espn_upcoming:
+        key = f"{fx['date']}|{fx['home_team']}|{fx['away_team']}"
+        if key not in seen_keys:
+            upcoming.append(fx)
+            seen_keys.add(key)
+    if espn_upcoming:
+        print(f" Total upcoming fixtures after merging all sources: {len(upcoming)}")
+
+    if not all_matches and not upcoming:
         print("ERROR: No data fetched from any source!")
         sys.exit(1)
 
-    # 2. Load existing data
+    # 4. Load existing data
     existing_historical = load_json("historical")
     existing_teams = load_json("team_stats")
 
-    # 3. Update team stats (standings from CSV)
+    # 5. Update team stats (standings from all completed matches)
     print("\nUpdating data files...")
-    team_stats = update_team_stats(csv_matches, existing_teams)
+    team_stats = update_team_stats(all_matches, existing_teams)
 
-    # 4. Recalculate ELO ratings
+    # 6. Recalculate ELO ratings
     print("Recalculating ELO ratings...")
     try:
-        team_stats = update_elo_ratings(csv_matches, team_stats)
+        team_stats = update_elo_ratings(all_matches, team_stats)
     except ImportError:
         print(" Warning: Could not import FootballELO, keeping existing ELO ratings")
 
     save_json("team_stats", team_stats)
 
-    # 5. Update historical (needs ELO from team_stats)
-    historical = update_historical(csv_matches, existing_historical)
+    # 7. Update historical (needs ELO from team_stats)
+    historical = update_historical(all_matches, existing_historical)
     save_json("historical", historical)
 
-    # 6. Update predictions (uses ML+ELO blend)
+    # 8. Update predictions (uses ML+ELO blend, filters out past dates)
     predictions = update_predictions(upcoming)
     save_json("predictions", predictions)
 
-    # 7. Update summary
+    # 9. Update summary
     summary = update_summary(predictions, historical, team_stats)
     save_json("summary", summary)
 
